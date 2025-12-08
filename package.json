@@ -1,0 +1,28 @@
+{
+  "name": "tno-quality-app",
+  "productName": "TNO Quality Companion",
+  "version": "1.0.0",
+  "description": "Asistente de Calidad para TNO",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "keywords": [],
+  "author": "Tu Nombre",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.tno.qualityapp",
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Office",
+      "icon": "logo.png"
+    }
+  }
+}

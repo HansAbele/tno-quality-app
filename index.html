@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TNO Quality Companion</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+      :root {
+        /* PALETA CORPORATIVA TNO */
+        --tno-blue: #1a2b45;
+        --tno-orange: #ff6600;
+        --bg-app: #f0f2f5;
+        --bg-card: #ffffff;
+        --text-gray: #64748b;
+        --border-light: #e2e8f0;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning-bg: #fff7ed;
+        --warning-text: #c2410c;
+        --radius: 8px;
+      }
+
+      body {
+        font-family: "Montserrat", sans-serif;
+        background-color: var(--bg-app);
+        color: var(--tno-blue);
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        box-sizing: border-box;
+      }
+
+      .app-container {
+        width: 100%;
+        max-width: 480px;
+        height: 95vh;
+        background-color: var(--bg-card);
+        border-radius: var(--radius);
+        box-shadow: 0 4px 20px rgba(26, 43, 69, 0.15);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border-top: 5px solid var(--tno-orange);
+      }
+
+      /* Header */
+      .header {
+        padding: 15px 20px;
+        background-color: var(--bg-card);
+        border-bottom: 1px solid var(--border-light);
+        flex-shrink: 0;
+      }
+      .brand-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .logo-img {
+        height: 60px;
+        margin-right: 12px;
+      }
+      .logo-text {
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: var(--tno-blue);
+        text-transform: uppercase;
+      }
+      .stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        font-weight: 600;
+        background: #f1f5f9;
+        padding: 6px 10px;
+        border-radius: 6px;
+      }
+
+      /* Progreso */
+      .progress-container {
+        width: 100%;
+        height: 4px;
+        background-color: var(--border-light);
+        flex-shrink: 0;
+      }
+      .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: var(--tno-orange);
+        transition: width 0.3s;
+      }
+
+      /* Contenido */
+      .content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--text-gray) transparent;
+      }
+
+      /* Inputs Generales */
+      .input-label {
+        font-size: 0.7rem;
+        color: var(--tno-blue);
+        font-weight: 700;
+        margin-bottom: 5px;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      input[type="text"],
+      select {
+        width: 100%;
+        padding: 10px;
+        border-radius: var(--radius);
+        border: 2px solid var(--border-light);
+        color: var(--tno-blue);
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        box-sizing: border-box;
+        transition: 0.2s;
+      }
+      input[type="text"]:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--tno-orange);
+      }
+
+      /* Sección Caller / HIPAA */
+      .caller-section {
+        background-color: #f8fafc;
+        padding: 10px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border-light);
+        margin-bottom: 15px;
+      }
+      .third-party-box {
+        display: none; /* Oculto por defecto */
+        margin-top: 10px;
+        border-top: 1px dashed var(--border-light);
+        padding-top: 10px;
+        animation: fadeIn 0.3s ease;
+      }
+
+      /* Cajas especiales */
+      .special-notice-box {
+        display: none;
+        margin-top: 10px;
+        padding: 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        animation: fadeIn 0.3s ease;
+      }
+      .notice-parent {
+        background-color: var(--warning-bg);
+        color: var(--warning-text);
+        border: 1px solid var(--tno-orange);
+      }
+      .notice-chartswap {
+        background-color: #eff6ff;
+        color: #1e3a8a;
+        border: 1px solid #bfdbfe;
+      }
+
+      .radio-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 5px;
+      }
+      .radio-label {
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+      }
+      .radio-label input {
+        margin-right: 5px;
+        accent-color: var(--tno-orange);
+      }
+
+      /* Checklist Items */
+      .checklist-item {
+        background: #fff;
+        margin-bottom: 8px;
+        padding: 10px 12px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--tno-blue);
+        transition: 0.2s;
+      }
+      .checklist-item:hover {
+        border-color: var(--tno-orange);
+      }
+      .checklist-item.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        background: #f1f5f9;
+      }
+      .checklist-item input {
+        margin-right: 12px;
+        width: 16px;
+        height: 16px;
+        accent-color: var(--tno-orange);
+        cursor: pointer;
+      }
+
+      /* Alertas Dinámicas */
+      .dynamic-info {
+        padding: 12px;
+        border-radius: var(--radius);
+        margin: 15px 0;
+        font-weight: 700;
+        font-size: 0.85rem;
+        display: none;
+        text-align: center;
+        border-left: 4px solid;
+        line-height: 1.4;
+      }
+      .alert-warning {
+        background: var(--warning-bg);
+        color: var(--warning-text);
+        border-color: var(--tno-orange);
+      }
+      .alert-danger {
+        background: #fee2e2;
+        color: var(--danger);
+        border-color: var(--danger);
+      }
+      .alert-info {
+        background: #e0f2fe;
+        color: #0369a1;
+        border-color: #0ea5e9;
+      }
+
+      /* Sub-opciones (Radio buttons dentro de checklist) */
+      .sub-options {
+        margin-left: 20px;
+        margin-top: 5px;
+        margin-bottom: 10px;
+        display: none; /* Se oculta por defecto */
+        padding: 8px;
+        background: #fff;
+        border-left: 2px solid var(--tno-orange);
+      }
+
+      /* Notas */
+      .note-area {
+        background: #f1f5f9;
+        padding: 15px;
+        border-radius: var(--radius);
+        margin-top: 20px;
+      }
+      textarea {
+        width: 100%;
+        height: 65px;
+        border: 1px solid #cbd5e1;
+        padding: 8px;
+        font-family: "Courier New", monospace;
+        font-size: 0.8rem;
+        resize: none;
+        background: #fff;
+      }
+
+      /* Footer */
+      .footer {
+        padding: 15px;
+        background-color: var(--bg-card);
+        border-top: 1px solid var(--border-light);
+        flex-shrink: 0;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        background-color: var(--tno-orange);
+        color: white;
+        border: none;
+        border-radius: var(--radius);
+        font-weight: 700;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: 0.3s;
+      }
+      button:hover {
+        background-color: #e65c00;
+      }
+      button:disabled {
+        background-color: #94a3b8;
+        cursor: not-allowed;
+      }
+      .copy-btn {
+        margin-top: 8px;
+        background-color: var(--tno-blue);
+        font-size: 0.75rem;
+        padding: 8px;
+      }
+
+      .success-msg {
+        color: var(--success);
+        text-align: center;
+        font-weight: 700;
+        margin-bottom: 10px;
+        display: none;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Estilos Iconos */
+      i.ph {
+        font-size: 1.3rem;
+        margin-right: 8px;
+        vertical-align: middle;
+        color: var(--tno-orange);
+      }
+      .ph-check-circle {
+        color: var(--success);
+      }
+      .ph-warning {
+        color: var(--warning-text);
+      }
+      .ph-shield-warning {
+        color: var(--danger);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <div class="header">
+        <div class="brand-container">
+          <img
+            src="./logo.png"
+            alt="TNO"
+            class="logo-img"
+            onerror="this.style.display='none'"
+          />
+          <div class="logo-text">Telecom Networks</div>
+        </div>
+        <div class="stats">
+          <span id="call-count">
+            <i
+              class="ph ph-phone-call"
+              style="color: var(--tno-blue); font-size: 1rem"
+            ></i>
+            CALLS: 0
+          </span>
+          <span style="margin: 0 10px; color: #cbd5e1">|</span>
+          <span id="quality-score">
+            <i
+              class="ph ph-chart-bar"
+              style="color: var(--tno-blue); font-size: 1rem"
+            ></i>
+            QA: 0%
+          </span>
+        </div>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+
+      <div class="content">
+        <div style="margin-bottom: 15px">
+          <label class="input-label">Account Number</label>
+          <input
+            type="text"
+            id="acct-number"
+            placeholder="Enter Account"
+            oninput="checkStart()"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="caller-section">
+          <label class="input-label">Who is calling?</label>
+          <select id="caller-type" onchange="updateCallerType()">
+            <option value="patient">Patient</option>
+            <option value="spouse">Spouse / Partner</option>
+            <option value="child">Child</option>
+            <option value="parent">Parent</option>
+            <option value="other">Other Relative</option>
+            <option value="insurance">Insurance Company</option>
+            <option value="facility">Facility / Doctor's Office</option>
+            <option value="lawyer">Lawyer / Law Firm</option>
+            <option value="third_party">Third Party</option>
+          </select>
+
+          <div id="parent-warning-box" class="special-notice-box notice-parent">
+            👶 <strong>MINOR CHECK:</strong> If patient is a minor, HIPAA Auth
+            is NOT required. Please select "Authorized".
+          </div>
+
+          <div
+            id="chartswap-input-box"
+            class="special-notice-box notice-chartswap"
+          >
+            ⚖️ <strong>LEGAL REQUEST:</strong> Please verify via ChartSwap.
+            <input
+              type="text"
+              id="chartswap-id"
+              placeholder="Enter ChartSwap Request #..."
+              style="margin-top: 5px; border-color: #bfdbfe"
+              onkeyup="updateNotePreview()"
+            />
+          </div>
+
+          <div id="third-party-details" class="third-party-box">
+            <div style="margin-bottom: 10px">
+              <label class="input-label" style="color: var(--danger)"
+                >Caller Name (Required)</label
+              >
+              <input
+                type="text"
+                id="caller-name"
+                placeholder="Name of caller..."
+                onkeyup="updateNotePreview()"
+              />
+            </div>
+
+            <div id="hipaa-radio-container">
+              <label class="input-label">HIPAA Authorization Status</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input
+                    type="radio"
+                    name="hipaa"
+                    value="auth"
+                    onchange="updateCallerType()"
+                  />
+                  ✅ Authorized
+                </label>
+                <label class="radio-label">
+                  <input
+                    type="radio"
+                    name="hipaa"
+                    value="noauth"
+                    onchange="updateCallerType()"
+                  />
+                  <i
+                    class="ph ph-prohibit"
+                    style="color: var(--danger); font-size: 1.2rem"
+                  ></i>
+                  No Authorized
+                </label>
+              </div>
+            </div>
+
+            <div
+              id="hipaa-warning"
+              class="dynamic-info alert-danger"
+              style="margin-top: 8px; font-size: 0.75rem"
+            >
+              STOP! HIPAA VIOLATION RISK.<br />PROVIDE BALANCE ONLY.<br />DO NOT
+              DISCUSS CLAIMS/DX.
+            </div>
+          </div>
+        </div>
+
+        <div id="checklist-container">
+          <label class="checklist-item disabled">
+            <input type="checkbox" class="step" />
+            <i class="ph ph-hand-waving"></i> 1. Greeting & Branding
+          </label>
+
+          <label class="checklist-item disabled">
+            <input type="checkbox" class="step" />
+            <i class="ph ph-identification-card"></i>
+            <span id="step-verify-text"
+              >2. Verify Demographics (Name, DOB, Addr)</span
+            >
+          </label>
+
+          <label class="checklist-item disabled">
+            <input type="checkbox" class="step" />
+            <i class="ph ph-question"></i> 3. Offer Assistance
+          </label>
+
+          <div
+            style="
+              margin-top: 20px;
+              padding-top: 15px;
+              border-top: 1px solid var(--border-light);
+            "
+          >
+            <label class="input-label"
+              ><i class="ph ph-git-branch"></i> Call Reason / Scenario</label
+            >
+            <select id="call-scenario" onchange="updateScenario()">
+              <option value="">-- SELECT SCENARIO --</option>
+              <option value="payment">Make a Payment</option>
+              <option value="payment_plan">Set up Payment Plan</option>
+              <option value="claim">Claim Status / Insurance</option>
+              <option value="escalation_ar">Escalation to AR</option>
+              <option value="followup">Follow-up (Previous Escalation)</option>
+              <option value="veteran">Veteran / VA Call</option>
+              <option value="selfpay">Self-Pay Discount Inquiry</option>
+              <option value="law_firm">Law Firm / Attorney</option>
+            </select>
+          </div>
+
+          <div id="dynamic-info-box" class="dynamic-info"></div>
+
+          <div id="followup-options" class="sub-options">
+            <label class="input-label">Ticket Status:</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  name="ticket-status"
+                  value="resolved"
+                  onchange="updateNotePreview()"
+                />
+                Resolved
+              </label>
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  name="ticket-status"
+                  value="process"
+                  onchange="updateNotePreview()"
+                />
+                In Process
+              </label>
+            </div>
+          </div>
+
+          <div id="dynamic-steps" style="margin-top: 10px"></div>
+
+          <div
+            style="
+              margin-top: 20px;
+              border-top: 1px solid var(--border-light);
+              padding-top: 15px;
+            "
+          >
+            <label class="checklist-item disabled">
+              <input type="checkbox" class="step" />
+              <i class="ph ph-arrows-clockwise"></i> Rephrase Issue / Recap
+            </label>
+
+            <label
+              class="checklist-item disabled"
+              style="flex-direction: column; align-items: flex-start"
+            >
+              <div style="display: flex; align-items: center; width: 100%">
+                <input type="checkbox" class="step" id="final-step" />
+                <i class="ph ph-door-open"></i> <span>Closing & Branding</span>
+              </div>
+              <div
+                style="
+                  margin-left: 30px;
+                  margin-top: 5px;
+                  font-size: 0.75rem;
+                  color: #64748b;
+                  font-style: italic;
+                "
+              >
+                "Anything else I can help with? ... Thank you for calling
+                <strong>Physician's Billing</strong>. Have a great day!"
+              </div>
+            </label>
+
+            <label class="checklist-item disabled">
+              <input type="checkbox" class="step" />
+              <i class="ph ph-floppy-disk-back"></i> Documented (Coded Note)
+            </label>
+          </div>
+        </div>
+
+        <div class="note-area">
+          <label class="input-label" style="color: var(--text-gray)"
+            >Auto-Note Preview:</label
+          >
+          <textarea id="note-preview" readonly></textarea>
+          <button class="copy-btn" onclick="copyNote()">COPY NOTE</button>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div id="congrats-msg" class="success-msg">✓ CALL COMPLETED (100%)</div>
+        <button id="end-call-btn" onclick="endCall()" disabled>
+          FINISH & SAVE
+        </button>
+      </div>
+    </div>
+
+    <script>
+      let currentStep = 0;
+      let callsToday = 0;
+      const steps = document.getElementsByClassName("step");
+      const progressBar = document.getElementById("progress-bar");
+      const qualityScore = document.getElementById("quality-score");
+
+      function checkStart() {
+        const acc = document.getElementById("acct-number").value;
+        if (acc.length > 2) {
+          steps[0].parentElement.classList.remove("disabled");
+        } else {
+          steps[0].parentElement.classList.add("disabled");
+          steps[0].checked = false;
+        }
+        updateNotePreview();
+      }
+
+      function updateCallerType() {
+        const type = document.getElementById("caller-type").value;
+        const thirdPartyBox = document.getElementById("third-party-details");
+        const hipaaWarning = document.getElementById("hipaa-warning");
+        const stepVerifyText = document.getElementById("step-verify-text");
+        const parentWarning = document.getElementById("parent-warning-box");
+        const chartSwapBox = document.getElementById("chartswap-input-box");
+        const hipaaRadioContainer = document.getElementById(
+          "hipaa-radio-container"
+        );
+
+        thirdPartyBox.style.display = "none";
+        parentWarning.style.display = "none";
+        chartSwapBox.style.display = "none";
+        hipaaRadioContainer.style.display = "block";
+
+        let verifyText = "2. Verify Demographics (Name, DOB, Addr)";
+
+        if (type === "patient") {
+          // Default
+        } else {
+          thirdPartyBox.style.display = "block";
+
+          if (["child", "other", "lawyer", "third_party"].includes(type)) {
+            verifyText = "2. Verify Demographics (Name, DOB)";
+          } else if (["spouse", "insurance"].includes(type)) {
+            verifyText = "2. Verify Demographics (Name, DOB, Addr, Phone#)";
+          }
+
+          if (type === "parent") {
+            parentWarning.style.display = "block";
+          }
+
+          if (["lawyer", "third_party"].includes(type)) {
+            chartSwapBox.style.display = "block";
+          }
+
+          if (["insurance", "facility"].includes(type)) {
+            hipaaRadioContainer.style.display = "none";
+            hipaaWarning.style.display = "none";
+          } else {
+            const hipaaStatus = document.querySelector(
+              'input[name="hipaa"]:checked'
+            )?.value;
+            if (hipaaStatus === "noauth") {
+              hipaaWarning.style.display = "block";
+            } else {
+              hipaaWarning.style.display = "none";
+            }
+          }
+        }
+
+        stepVerifyText.innerText = verifyText;
+        updateNotePreview();
+      }
+
+      document
+        .getElementById("checklist-container")
+        .addEventListener("change", function (e) {
+          if (e.target.classList.contains("step")) {
+            const allSteps = Array.from(document.querySelectorAll(".step"));
+            const index = allSteps.indexOf(e.target);
+
+            // 1. Validación estricta de orden
+            if (index > 0 && !allSteps[index - 1].checked) {
+              e.target.checked = false;
+              alert(
+                "⚠️ Sequence Error: Please complete the previous step first."
+              );
+              return;
+            }
+
+            // 2. Habilitar el siguiente paso (SOLUCIÓN AQUÍ)
+            // Usamos .closest() para encontrar la tarjeta padre sin importar si hay divs en medio
+            if (e.target.checked && index < allSteps.length - 1) {
+              const nextItem = allSteps[index + 1].closest(".checklist-item");
+              if (nextItem) {
+                nextItem.classList.remove("disabled");
+              }
+            }
+
+            updateProgress(allSteps);
+          }
+        });
+
+      function updateProgress(allSteps) {
+        const checkedCount = allSteps.filter((s) => s.checked).length;
+        const total = allSteps.length;
+        const percent =
+          total === 0 ? 0 : Math.round((checkedCount / total) * 100);
+        progressBar.style.width = percent + "%";
+        qualityScore.innerText = `QA: ${percent}%`;
+        if (percent === 100 && total > 0) {
+          document.getElementById("congrats-msg").style.display = "block";
+          document.getElementById("end-call-btn").disabled = false;
+          updateNotePreview();
+        }
+      }
+
+      function updateScenario() {
+        const scenario = document.getElementById("call-scenario").value;
+        const infoBox = document.getElementById("dynamic-info-box");
+        const dynamicStepsDiv = document.getElementById("dynamic-steps");
+        const followupOpts = document.getElementById("followup-options");
+
+        // Reset UI
+        infoBox.style.display = "none";
+        infoBox.className = "dynamic-info";
+        dynamicStepsDiv.innerHTML = "";
+        followupOpts.style.display = "none";
+
+        const iconStyle =
+          'style="font-size:1.5rem; vertical-align:middle; margin-right:5px;"';
+
+        if (scenario === "payment") {
+          infoBox.style.display = "block";
+          infoBox.classList.add("alert-danger");
+          infoBox.innerHTML = `<i class="ph ph-shield-warning" ${iconStyle}></i> <strong>REMINDER: PLEASE MASK THE CALL!</strong><br>Posting Timeframe: 7-10 Days.`;
+          dynamicStepsDiv.innerHTML = `<label class="checklist-item"><input type="checkbox" class="step"> <i class="ph ph-lock-key"></i> Masked & Processed</label>`;
+        } else if (scenario === "payment_plan") {
+          infoBox.style.display = "block";
+          infoBox.classList.add("alert-warning");
+          infoBox.innerHTML = `<i class="ph ph-calendar-check" ${iconStyle}></i> <strong>REMINDER:</strong> Advise patient that the Due Date is the 15th of every month.`;
+          dynamicStepsDiv.innerHTML = `<label class="checklist-item"><input type="checkbox" class="step"> <i class="ph ph-check-circle"></i> Advised Due Date (15th)</label>`;
+        } else if (scenario === "escalation_ar") {
+          infoBox.style.display = "block";
+          infoBox.classList.add("alert-warning");
+          infoBox.innerHTML = `<i class="ph ph-clock" ${iconStyle}></i> AR Timeframe: 3-5 Business Days`;
+        } else if (scenario === "claim") {
+          infoBox.style.display = "block";
+          infoBox.classList.add("alert-info");
+          infoBox.innerHTML = `<i class="ph ph-info" ${iconStyle}></i> Processing: 30-45 Days`;
+          dynamicStepsDiv.innerHTML = `<label class="checklist-item"><input type="checkbox" class="step"> <i class="ph ph-paper-plane-right"></i> Verified Sent Date</label>`;
+        } else if (scenario === "veteran") {
+          infoBox.style.display = "block";
+          infoBox.classList.add("alert-warning");
+          infoBox.innerHTML = `<i class="ph ph-medal" ${iconStyle}></i> REQUIREMENT: Obtain VA Auth Number`;
+          dynamicStepsDiv.innerHTML = `<label class="checklist-item"><input type="checkbox" class="step"> <i class="ph ph-hash"></i> Verified VA Auth #</label>`;
+        } else if (scenario === "selfpay") {
+          infoBox.style.display = "block";
+          infoBox.classList.add("alert-info");
+          infoBox.innerHTML = `<i class="ph ph-file-text" ${iconStyle}></i> PLEASE CHECK CLIENT FACT SHEET FOR DISCOUNT POLICY`;
+        } else if (scenario === "followup") {
+          // AQUI MOSTRAMOS LA CAJA DE OPCIONES DE FOLLOW UP
+          followupOpts.style.display = "block";
+        } else if (scenario === "law_firm") {
+          dynamicStepsDiv.innerHTML = `<label class="checklist-item"><input type="checkbox" class="step"> <i class="ph ph-scales"></i> Verified HIPAA/ChartSwap</label>`;
+        }
+
+        const allSteps = Array.from(document.querySelectorAll(".step"));
+        if (allSteps.length > 0) updateProgress(allSteps);
+        updateNotePreview();
+      }
+
+      function updateNotePreview() {
+        const acc = document.getElementById("acct-number").value || "NO ACC#";
+        const scenario = document.getElementById("call-scenario").value;
+        const callerType = document.getElementById("caller-type").value;
+        const callerName = document
+          .getElementById("caller-name")
+          .value.toUpperCase();
+        const hipaaStatus = document.querySelector(
+          'input[name="hipaa"]:checked'
+        )?.value;
+        const chartSwapID = document.getElementById("chartswap-id").value;
+
+        let callerNote = "";
+        let bodyNote = "";
+
+        // 1. Identificar Caller y Status
+        if (callerType === "patient") {
+          callerNote = "PT CLD";
+        } else {
+          let relation = callerType.toUpperCase();
+          if (callerName) relation += ` (${callerName})`;
+
+          if (["insurance", "facility"].includes(callerType)) {
+            callerNote = `${relation} CLD. HIPAA VERIFIED (COVERED ENTITY).`;
+          } else if (hipaaStatus === "noauth") {
+            callerNote = `${relation} CLD. NO HIPAA AUTH ON FILE. VERIFIED DEMOS.`;
+            bodyNote = "PROVIDED BALANCE ONLY. DENIED CLAIM DETAILS PER HIPAA.";
+          } else {
+            callerNote = `${relation} CLD. HIPAA VERIFIED.`;
+          }
+
+          if (chartSwapID && ["lawyer", "third_party"].includes(callerType)) {
+            callerNote += ` CS REQ# ${chartSwapID}.`;
+          }
+        }
+
+        const isHipaaRestricted =
+          hipaaStatus === "noauth" &&
+          !["insurance", "facility"].includes(callerType);
+
+        if (!isHipaaRestricted || callerType === "patient") {
+          if (scenario === "payment")
+            bodyNote =
+              "REQ PYMT. REC MASKED. PROCESSED PAYMENT. ADVISED 7-10 DAY POSTING.";
+          else if (scenario === "payment_plan")
+            bodyNote =
+              "REQ PAYMENT PLAN. ADVISED DUE DATE IS 15TH OF EVERY MONTH. PT AGREED.";
+          else if (scenario === "escalation_ar")
+            bodyNote =
+              "RE: BILLING ISSUE. ESCALATED TO AR. ADVISED 3-5 BUS DAYS TAT.";
+          else if (scenario === "claim")
+            bodyNote =
+              "REQ CLAIM STATUS. CONFIRMED CLAIM SENT. ADVISED 30-45 DAY PROCESSING.";
+          else if (scenario === "veteran")
+            bodyNote =
+              "VA PT CLD. OBTAINED & VERIFIED VA AUTH NUMBER FOR BILLING.";
+          else if (scenario === "selfpay")
+            bodyNote =
+              "REQ DISCOUNT. CHECKED CLIENT FACT SHEET. ADVISED ON SELF-PAY POLICY.";
+          else if (scenario === "law_firm")
+            bodyNote = "LAW FIRM REQ INFO. VERIFIED REQ.";
+          else if (scenario === "followup") {
+            // LOGICA PARA FOLLOW UP (RESOLVED O IN PROCESS)
+            const status = document.querySelector(
+              'input[name="ticket-status"]:checked'
+            )?.value;
+
+            if (status === "resolved")
+              bodyNote =
+                "FOLLOW UP ON PREV ESCALATION. TICKET RESOLVED. ADVISED PATIENT.";
+            else if (status === "process")
+              bodyNote =
+                "FOLLOW UP ON PREV ESCALATION. TICKET STILL IN PROCESS. ADVISED AR IS WORKING ON IT.";
+            else bodyNote = "FOLLOW UP ON PREV ESCALATION.";
+          } else if (!bodyNote) bodyNote = "GENERAL ASSISTANCE PROVIDED.";
+        }
+
+        document.getElementById(
+          "note-preview"
+        ).value = `ACC# ${acc} | ${callerNote} ${bodyNote}`;
+      }
+
+      function copyNote() {
+        const note = document.getElementById("note-preview");
+        note.select();
+        document.execCommand("copy");
+        const btn = document.querySelector(".copy-btn");
+        btn.innerText = "COPIED ✓";
+        setTimeout(() => (btn.innerText = "COPY NOTE"), 1500);
+      }
+
+      function endCall() {
+        callsToday++;
+        document.getElementById(
+          "call-count"
+        ).innerText = `CALLS: ${callsToday}`;
+
+        document.getElementById("acct-number").value = "";
+        document.getElementById("caller-type").value = "patient";
+        document.getElementById("caller-name").value = "";
+        document.getElementById("call-scenario").value = "";
+        document.getElementById("chartswap-id").value = "";
+
+        const radios = document.querySelectorAll('input[type="radio"]');
+        radios.forEach((r) => (r.checked = false));
+
+        updateCallerType();
+        updateScenario();
+
+        document.querySelectorAll(".step").forEach((s) => {
+          s.checked = false;
+          s.parentElement.classList.add("disabled");
+        });
+
+        progressBar.style.width = "0%";
+        qualityScore.innerText = "QA: 0%";
+        document.getElementById("congrats-msg").style.display = "none";
+        document.getElementById("end-call-btn").disabled = true;
+        document.getElementById("note-preview").value = "";
+
+        document.querySelector(".content").scrollTop = 0;
+      }
+    </script>
+  </body>
+</html>
