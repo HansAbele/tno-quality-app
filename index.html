@@ -311,6 +311,32 @@
         padding: 8px;
       }
 
+      .copy-btn {
+        margin-top: 8px;
+        background-color: var(--tno-blue);
+        font-size: 0.75rem;
+        padding: 8px;
+      }
+
+      /* --- AGREGA ESTO --- */
+      .copyright-text {
+        text-align: center;
+        font-size: 0.7rem;
+        color: var(--text-gray);
+        margin-top: 15px; /* Un poco de espacio sobre el botón */
+        line-height: 1.5; /* Para que las dos líneas respiren */
+      }
+
+      /* Animación opcional: ¡El corazón late! */
+      .copyright-text .ph-heart.ph-fill { /* <--- Selector corregido */
+         animation: heartbeat 1.5s infinite;
+      }
+      
+      @keyframes heartbeat {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.2); }
+          100% { transform: scale(1); }
+      }
       .success-msg {
         color: var(--success);
         text-align: center;
@@ -604,8 +630,13 @@
         <button id="end-call-btn" onclick="endCall()" disabled>
           FINISH & SAVE
         </button>
+      
+        <div class="copyright-text">
+            <i class="ph ph-copyright"></i> 2025 Telecom Networks. All rights reserved.
+            <br>
+            Made with <i class="ph-fill ph-heart" style="color: var(--danger);"></i> by <strong>JOHAN</strong>
+        </div>
       </div>
-    </div>
 
     <script>
       let currentStep = 0;
