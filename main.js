@@ -21,8 +21,8 @@ function createWindow() {
 
     // Configuración visual
     icon: path.join(__dirname, "logo.png"),
-    frame: true, 
-    alwaysOnTop: true, 
+    frame: true,
+    alwaysOnTop: true,
 
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -50,7 +50,7 @@ ipcMain.handle("save-call-data", async (event, data) => {
 
     const filePath = path.join(documentsPath, fileName);
     let fileContent = [];
-    
+
     if (fs.existsSync(filePath)) {
       const rawData = fs.readFileSync(filePath);
       try {
@@ -75,13 +75,13 @@ ipcMain.handle("save-call-data", async (event, data) => {
 ipcMain.handle("get-history", async () => {
   try {
     const documentsPath = path.join(os.homedir(), "Documents", "TNO_Logs");
-    
+
     // Si la carpeta no existe, devolvemos una lista vacía
     if (!fs.existsSync(documentsPath)) return [];
 
     // Leemos los archivos de la carpeta que terminen en .json
     const files = fs.readdirSync(documentsPath).filter(file => file.endsWith('.json'));
-    
+
     let allCalls = [];
 
     // Recorremos los archivos en orden inverso (más recientes primero)
@@ -92,7 +92,7 @@ ipcMain.handle("get-history", async () => {
         const json = JSON.parse(fileContent);
         // Unimos los datos de este archivo al total
         if (Array.isArray(json)) {
-            allCalls = allCalls.concat(json);
+          allCalls = allCalls.concat(json);
         }
       } catch (err) {
         console.error("Error leyendo archivo:", file, err);
@@ -134,8 +134,8 @@ ipcMain.handle("ask-copilot", async (event, question) => {
     }
 
     // 3. Ask Google Gemini to generate the final response
-    const aiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    
+    const aiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+
     // Read the main system prompt rules from the file we just created
     const systemRules = fs.readFileSync(path.join(__dirname, "system_prompt.txt"), "utf-8");
 
@@ -147,7 +147,7 @@ ipcMain.handle("ask-copilot", async (event, question) => {
     
     --- CURRENT INQUIRY ---
     Agent's Question: ${question}`;
-    
+
     const resultResponse = await aiModel.generateContent(prompt);
     return { content: resultResponse.response.text() };
 
