@@ -1,2 +1,8 @@
 node_modules/
 dist/
+.env
+.env.*
+.claude/
+.vscode/
+error.json
+error.txt
