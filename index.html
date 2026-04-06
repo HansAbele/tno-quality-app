@@ -1065,11 +1065,12 @@
           const inputWrapper = document.getElementById("chat-input-wrapper");
           const recordingBar = document.getElementById("recording-bar");
           const recordingTimer = document.getElementById("recording-timer");
-          const recordingLabel = recordingBar.querySelector(".recording-label");
+          const recordingLabel = recordingBar ? recordingBar.querySelector(".recording-label") : null;
 
           let mediaRecorder = null;
           let audioChunks = [];
           let isRecording = false;
+          let isTranscribing = false;
           let recTimerInterval = null;
           let recSeconds = 0;
 
@@ -1079,7 +1080,7 @@
             micIcon.className = "ph ph-stop-fill";
             inputWrapper.classList.add("recording");
             recordingBar.classList.add("active");
-            recordingLabel.textContent = "Listening...";
+            if (recordingLabel) recordingLabel.textContent = "Listening...";
             chatSendBtn.classList.add("disabled");
             recSeconds = 0;
             recordingTimer.textContent = "0:00";
@@ -1093,15 +1094,18 @@
 
           function stopRecordingUI() {
             isRecording = false;
+            isTranscribing = false;
             clearInterval(recTimerInterval);
             micBtn.classList.remove("recording");
             micIcon.className = "ph ph-microphone";
             inputWrapper.classList.remove("recording");
             recordingBar.classList.remove("active");
+            if (recordingLabel) recordingLabel.textContent = "Listening...";
             chatSendBtn.classList.remove("disabled");
           }
 
           async function startRecording() {
+            if (isTranscribing) return; // Block new recording while transcribing
             try {
               const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
               audioChunks = [];
@@ -1119,8 +1123,9 @@
                   return;
                 }
 
-                // Show transcribing state
-                recordingLabel.textContent = "Transcribing...";
+                // Show transcribing state and block new recordings
+                isTranscribing = true;
+                if (recordingLabel) recordingLabel.textContent = "Transcribing...";
 
                 const blob = new Blob(audioChunks, { type: "audio/webm" });
                 const reader = new FileReader();
@@ -1147,7 +1152,7 @@
                     }
                   } catch (err) {
                     stopRecordingUI();
-                    appendMessage("system", "Transcription failed. Please try again.");
+                    appendMessage("system", err.message === "Request timed out" ? "Transcription timed out. Please try again." : "Transcription failed. Please try again.");
                   }
                 };
                 reader.readAsDataURL(blob);
@@ -1174,6 +1179,7 @@
           }
 
           micBtn.addEventListener("click", () => {
+            if (isTranscribing) return; // Block clicks during transcription
             if (isRecording) {
               stopRecording();
             } else {
