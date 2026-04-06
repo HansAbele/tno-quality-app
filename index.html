@@ -747,6 +747,25 @@
     </div>
 
     <script>
+      // Sanitize marked output — strip any raw HTML tags from AI responses
+      const markedRenderer = new marked.Renderer();
+      marked.setOptions({
+        renderer: markedRenderer,
+        breaks: true
+      });
+      function sanitizeHTML(html) {
+        const div = document.createElement("div");
+        div.innerHTML = html;
+        div.querySelectorAll("script, iframe, object, embed, form, input, textarea, style").forEach(el => el.remove());
+        div.querySelectorAll("*").forEach(el => {
+          for (const attr of [...el.attributes]) {
+            if (attr.name.startsWith("on") || attr.name === "srcdoc") el.removeAttribute(attr.name);
+          }
+          if (el.tagName === "A") { el.setAttribute("target", "_blank"); el.setAttribute("rel", "noopener noreferrer"); }
+        });
+        return div.innerHTML;
+      }
+
       // --- BASE DE DATOS DE CÓDIGOS DE NEGACIÓN ---
       // Consolidados del PDF proporcionado 
       const denialCodesDB = {
@@ -1023,6 +1042,13 @@
               chatContainer.classList.remove("active");
           });
 
+          function withTimeout(promise, ms) {
+            return Promise.race([
+              promise,
+              new Promise((_, reject) => setTimeout(() => reject(new Error("Request timed out")), ms))
+            ]);
+          }
+
           function checkSendChat() {
               const text = chatInput.value.trim();
               if (text) sendChatMessage(text);
@@ -1098,10 +1124,19 @@
 
                 const blob = new Blob(audioChunks, { type: "audio/webm" });
                 const reader = new FileReader();
+                reader.onerror = () => {
+                  stopRecordingUI();
+                  appendMessage("system", "Failed to process audio recording. Please try again.");
+                };
                 reader.onloadend = async () => {
+                  if (!reader.result || typeof reader.result !== "string" || !reader.result.includes(",")) {
+                    stopRecordingUI();
+                    appendMessage("system", "Failed to process audio recording. Please try again.");
+                    return;
+                  }
                   const base64 = reader.result.split(",")[1];
                   try {
-                    const result = await window.electronAPI.transcribeAudio(base64);
+                    const result = await withTimeout(window.electronAPI.transcribeAudio(base64), 45000);
                     stopRecordingUI();
                     if (result && result.text) {
                       const prev = chatInput.value;
@@ -1163,8 +1198,8 @@
 
               // 3. Call Electron IPC
               try {
-                  const reply = await window.electronAPI.askCopilot(text);
-                  document.getElementById("typing-indicator").remove();
+                  const reply = await withTimeout(window.electronAPI.askCopilot(text), 30000);
+                  document.getElementById("typing-indicator")?.remove();
                   
                   if (reply && reply.content) {
                       appendMessage("system", reply.content);
@@ -1183,7 +1218,7 @@
               msgDiv.className = `chat-msg ${sender}-msg`;
 
               // Handle Markdown formatting
-              const formattedText = marked.parse(text);
+              const formattedText = sanitizeHTML(marked.parse(text));
 
               const botAvatar = `<img src="assets/img/logo.png" style="width:22px;height:22px;object-fit:contain;" alt="Bot">`;
               const userIcon = `<i class="ph ph-user" style="color:white;font-size:1rem;"></i>`;
@@ -1537,7 +1572,7 @@
       function calculatePaymentPlan() {
           const balance = parseFloat(document.getElementById("pp-balance").value);
           const res = document.getElementById("pp-result-container");
-          if (!balance || balance <= 0) { res.style.display="none"; return; }
+          if (isNaN(balance) || balance <= 0) { res.style.display="none"; return; }
           
           let months = 0;
           if (balance <= 100) months = 2;
@@ -1556,7 +1591,7 @@
       function calculateSelfPay() {
           const amt = parseFloat(document.getElementById("sp-amount").value);
           const pct = parseFloat(document.getElementById("sp-percent").value);
-          if(!amt || !pct) { document.getElementById("sp-result-container").style.display="none"; return; }
+          if(isNaN(amt) || isNaN(pct) || amt <= 0 || pct <= 0) { document.getElementById("sp-result-container").style.display="none"; return; }
           const saved = amt * (pct/100);
           document.getElementById("sp-saved").innerText = `$${saved.toFixed(2)}`;
           document.getElementById("sp-total").innerText = `$${(amt - saved).toFixed(2)}`;

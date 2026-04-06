@@ -110,41 +110,57 @@ ipcMain.handle("get-history", async () => {
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { createClient } = require("@supabase/supabase-js");
 
+// Pre-load system prompt once at startup
+let systemRules = "";
+try {
+  systemRules = fs.readFileSync(path.join(__dirname, "system_prompt.txt"), "utf-8");
+} catch (e) {
+  console.error("WARNING: system_prompt.txt not found. Copilot will work without system rules.");
+}
+
+// Validate required env vars
+const REQUIRED_ENV = ["GEMINI_API_KEY", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
+const missingEnv = REQUIRED_ENV.filter(k => !process.env[k]);
+if (missingEnv.length > 0) {
+  console.error(`WARNING: Missing environment variables: ${missingEnv.join(", ")}. AI features will not work.`);
+}
+
 ipcMain.handle("ask-copilot", async (event, question) => {
   try {
-    // 1. Convert question to vector using Gemini 
+    if (!process.env.GEMINI_API_KEY) return { content: "AI is not configured. Please check your .env file (GEMINI_API_KEY missing)." };
+
+    // 1. Convert question to vector using Gemini
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
     const result = await embeddingModel.embedContent(question);
     const queryEmbedding = result.embedding.values;
 
     // 2. Search Supabase database
-    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-    const { data: documents, error } = await supabase.rpc("match_chunks", {
-      query_embedding: queryEmbedding,
-      match_threshold: 0.5,
-      match_count: 3
-    });
-
-    if (error) throw error;
-
     let contextText = "No direct company rules found in the manual for this specific query. Answer generally or ask the user for more clarification.";
-    if (documents && documents.length > 0) {
-      contextText = documents.map(doc => `DOCUMENT SNIPPET (Source: ${doc.source}):\n${doc.content}`).join("\n\n---\n\n");
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+      const { data: documents, error } = await supabase.rpc("match_chunks", {
+        query_embedding: queryEmbedding,
+        match_threshold: 0.5,
+        match_count: 3
+      });
+
+      if (error) console.error("Supabase search error:", error.message);
+
+      if (documents && documents.length > 0) {
+        contextText = documents.map(doc => `DOCUMENT SNIPPET (Source: ${doc.source}):\n${doc.content}`).join("\n\n---\n\n");
+      }
     }
 
     // 3. Ask Google Gemini to generate the final response
     const aiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
-    // Read the main system prompt rules from the file we just created
-    const systemRules = fs.readFileSync(path.join(__dirname, "system_prompt.txt"), "utf-8");
-
     const prompt = `${systemRules}
-    
+
     --- KNOWLEDGE BASE CONTEXT ---
     Here is the knowledge context retrieved from the database:
     ${contextText}
-    
+
     --- CURRENT INQUIRY ---
     Agent's Question: ${question}`;
 
@@ -153,7 +169,7 @@ ipcMain.handle("ask-copilot", async (event, question) => {
 
   } catch (error) {
     console.error("Error en ask-copilot:", error);
-    return { error: error.message };
+    return { content: "I'm having trouble connecting right now. Please try again in a moment." };
   }
 });
 
