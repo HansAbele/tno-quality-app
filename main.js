@@ -158,27 +158,38 @@ ipcMain.handle("ask-copilot", async (event, question) => {
 });
 
 // === AUDIO TRANSCRIPTION (Voice Dictation) ===
+const TRANSCRIPTION_MODELS = ["gemini-2.5-flash-lite", "gemini-2.0-flash"];
+
 ipcMain.handle("transcribe-audio", async (event, audioBase64) => {
-  try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          mimeType: "audio/webm",
-          data: audioBase64,
+  for (const modelName of TRANSCRIPTION_MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+
+      const result = await model.generateContent([
+        {
+          inlineData: {
+            mimeType: "audio/webm",
+            data: audioBase64,
+          },
         },
-      },
-      { text: "Transcribe this audio exactly as spoken. Return ONLY the transcribed text, nothing else. No quotes, no labels, no explanations. If the audio is in Spanish, transcribe in Spanish. If in English, transcribe in English." },
-    ]);
+        { text: "Transcribe the spoken words in this audio. Output ONLY the exact words spoken, nothing else. Do not add labels, prefixes, quotes, or commentary." },
+      ]);
 
-    const text = result.response.text().trim();
-    return { text };
-  } catch (error) {
-    console.error("Error en transcribe-audio:", error);
-    return { error: error.message };
+      let text = result.response.text().trim();
+      // Strip any prefix Gemini might add despite instructions
+      text = text.replace(/^(here'?s?\s*(the)?\s*transcription\s*:\s*)/i, "");
+      text = text.replace(/^["']|["']$/g, "");
+      return { text };
+    } catch (error) {
+      console.error(`Transcription failed with ${modelName}:`, error.message);
+      // Try next model
+      continue;
+    }
   }
+
+  return { error: "Transcription unavailable. All models are busy, please try again in a moment." };
 });
 
 // === CICLO DE VIDA DE LA APP ===
