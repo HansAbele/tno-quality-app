@@ -997,16 +997,22 @@
         breaks: true
       });
       function sanitizeHTML(html) {
-        const div = document.createElement("div");
-        div.innerHTML = html;
-        div.querySelectorAll("script, iframe, object, embed, form, input, textarea, style").forEach(el => el.remove());
-        div.querySelectorAll("*").forEach(el => {
+        // Parse in a detached template element (never touches live DOM)
+        const template = document.createElement("template");
+        template.innerHTML = html;
+        const frag = template.content;
+        frag.querySelectorAll("script, iframe, object, embed, form, input, textarea, style, link, meta, base, svg").forEach(el => el.remove());
+        frag.querySelectorAll("*").forEach(el => {
           for (const attr of [...el.attributes]) {
-            if (attr.name.startsWith("on") || attr.name === "srcdoc") el.removeAttribute(attr.name);
+            if (attr.name.startsWith("on") || attr.name === "srcdoc" || attr.name === "href" && attr.value.trim().toLowerCase().startsWith("javascript:")) {
+              el.removeAttribute(attr.name);
+            }
           }
           if (el.tagName === "A") { el.setAttribute("target", "_blank"); el.setAttribute("rel", "noopener noreferrer"); }
         });
-        return div.innerHTML;
+        const safe = document.createElement("div");
+        safe.appendChild(frag.cloneNode(true));
+        return safe.innerHTML;
       }
 
       // --- BASE DE DATOS DE CÓDIGOS DE NEGACIÓN ---
@@ -1840,7 +1846,7 @@
       function calculateSelfPay() {
           const amt = parseFloat(document.getElementById("sp-amount").value);
           const pct = parseFloat(document.getElementById("sp-percent").value);
-          if(isNaN(amt) || isNaN(pct) || amt <= 0 || pct <= 0) { document.getElementById("sp-result-container").style.display="none"; return; }
+          if(isNaN(amt) || isNaN(pct) || amt <= 0 || pct <= 0 || pct > 100) { document.getElementById("sp-result-container").style.display="none"; return; }
           const saved = amt * (pct/100);
           document.getElementById("sp-saved").innerText = `$${saved.toFixed(2)}`;
           document.getElementById("sp-total").innerText = `$${(amt - saved).toFixed(2)}`;
