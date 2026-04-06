@@ -157,6 +157,30 @@ ipcMain.handle("ask-copilot", async (event, question) => {
   }
 });
 
+// === AUDIO TRANSCRIPTION (Voice Dictation) ===
+ipcMain.handle("transcribe-audio", async (event, audioBase64) => {
+  try {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          mimeType: "audio/webm",
+          data: audioBase64,
+        },
+      },
+      { text: "Transcribe this audio exactly as spoken. Return ONLY the transcribed text, nothing else. No quotes, no labels, no explanations. If the audio is in Spanish, transcribe in Spanish. If in English, transcribe in English." },
+    ]);
+
+    const text = result.response.text().trim();
+    return { text };
+  } catch (error) {
+    console.error("Error en transcribe-audio:", error);
+    return { error: error.message };
+  }
+});
+
 // === CICLO DE VIDA DE LA APP ===
 app.whenReady().then(() => {
   createWindow();

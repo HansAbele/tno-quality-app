@@ -196,25 +196,91 @@
         background: white;
         display: flex; gap: 10px; align-items: center;
         flex-shrink: 0;
+        flex-direction: column;
+      }
+      .recording-bar {
+        display: none;
+        width: 100%;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        background: #FEF2F2;
+        border-radius: 12px;
+        margin-bottom: 4px;
+        animation: slideInUp 0.2s ease;
+      }
+      .recording-bar.active { display: flex; }
+      .recording-waves {
+        display: flex; gap: 3px; align-items: center; height: 20px;
+      }
+      .recording-waves span {
+        width: 3px; border-radius: 2px; background: #EF4444;
+        animation: waveAnim 1s ease-in-out infinite;
+      }
+      .recording-waves span:nth-child(1) { height: 8px; animation-delay: 0s; }
+      .recording-waves span:nth-child(2) { height: 14px; animation-delay: 0.15s; }
+      .recording-waves span:nth-child(3) { height: 20px; animation-delay: 0.3s; }
+      .recording-waves span:nth-child(4) { height: 14px; animation-delay: 0.45s; }
+      .recording-waves span:nth-child(5) { height: 8px; animation-delay: 0.6s; }
+      @keyframes waveAnim {
+        0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+        50% { transform: scaleY(1); opacity: 1; }
+      }
+      .recording-label {
+        font-size: 0.78rem; font-weight: 600; color: #EF4444;
+      }
+      .recording-timer {
+        margin-left: auto; font-size: 0.75rem; font-weight: 600; color: #94a3b8; font-variant-numeric: tabular-nums;
+      }
+      .chat-input-row {
+        display: flex; gap: 10px; align-items: center; width: 100%;
+      }
+      .chat-input-wrapper {
+        flex: 1; display: flex; align-items: center;
+        border-radius: 24px;
+        border: 2px solid var(--tno-orange);
+        background: white;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        padding-right: 6px;
+      }
+      .chat-input-wrapper:focus-within { box-shadow: 0 0 0 3px rgba(255,102,0,0.15); }
+      .chat-input-wrapper.recording {
+        border-color: #EF4444;
+        animation: pulseRed 1.5s ease-in-out infinite;
+      }
+      @keyframes pulseRed {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); }
+        50% { box-shadow: 0 0 0 6px rgba(239,68,68,0.08); }
       }
       .chat-input {
         flex: 1; margin-bottom: 0 !important;
         border-radius: 24px !important; padding: 11px 18px !important;
         font-size: 0.88rem !important;
-        background: white;
-        border: 2px solid var(--tno-orange) !important;
+        background: transparent;
+        border: none !important;
         box-shadow: none !important;
-        transition: box-shadow 0.2s !important;
+        outline: none !important;
       }
-      .chat-input:focus { box-shadow: 0 0 0 3px rgba(255,102,0,0.15) !important; outline: none !important; }
+      .mic-btn {
+        width: 32px; height: 32px; padding: 0;
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        background: #F1F5F9; border: none; cursor: pointer;
+        flex-shrink: 0; transition: background 0.2s, color 0.2s;
+        color: #64748B;
+      }
+      .mic-btn:hover { background: #FFF7ED; color: var(--tno-orange); }
+      .mic-btn.recording { background: #FEE2E2; color: #EF4444; }
+      .mic-btn.recording:hover { background: #FECACA; color: #DC2626; }
+      .mic-btn i { font-size: 1rem; margin: 0; pointer-events: none; }
       .chat-send {
         width: 44px; height: 44px; padding: 0;
         border-radius: 50%; display: flex; align-items: center; justify-content: center;
         background: var(--tno-orange); flex-shrink: 0;
         box-shadow: 0 3px 10px rgba(255,102,0,0.35);
-        transition: background 0.2s, transform 0.2s;
+        transition: background 0.2s, transform 0.2s, opacity 0.2s;
       }
       .chat-send:hover { background: #e65c00; transform: scale(1.05); }
+      .chat-send.disabled { opacity: 0.4; pointer-events: none; }
       .chat-send i { font-size: 1.1rem; margin: 0; color: white; }
 
       /* Footer note */
@@ -661,8 +727,18 @@
 
         <!-- Input Area -->
         <div class="chat-input-area">
-          <input type="text" id="chat-input" class="chat-input" placeholder="Ask a question..." autocomplete="off" />
-          <button class="chat-send" id="chat-send-btn"><i class="ph ph-paper-plane-right"></i></button>
+          <div class="recording-bar" id="recording-bar">
+            <div class="recording-waves"><span></span><span></span><span></span><span></span><span></span></div>
+            <span class="recording-label">Listening...</span>
+            <span class="recording-timer" id="recording-timer">0:00</span>
+          </div>
+          <div class="chat-input-row">
+            <div class="chat-input-wrapper" id="chat-input-wrapper">
+              <input type="text" id="chat-input" class="chat-input" placeholder="Ask a question..." autocomplete="off" />
+              <button class="mic-btn" id="mic-btn" title="Voice dictation"><i class="ph ph-microphone" id="mic-icon"></i></button>
+            </div>
+            <button class="chat-send" id="chat-send-btn"><i class="ph ph-paper-plane-right"></i></button>
+          </div>
         </div>
 
         <!-- Footer -->
@@ -955,6 +1031,119 @@
           chatSendBtn.addEventListener("click", checkSendChat);
           chatInput.addEventListener("keypress", (e) => {
               if (e.key === "Enter") checkSendChat();
+          });
+
+          // --- VOICE DICTATION (MediaRecorder + Gemini Transcription) ---
+          const micBtn = document.getElementById("mic-btn");
+          const micIcon = document.getElementById("mic-icon");
+          const inputWrapper = document.getElementById("chat-input-wrapper");
+          const recordingBar = document.getElementById("recording-bar");
+          const recordingTimer = document.getElementById("recording-timer");
+          const recordingLabel = recordingBar.querySelector(".recording-label");
+
+          let mediaRecorder = null;
+          let audioChunks = [];
+          let isRecording = false;
+          let recTimerInterval = null;
+          let recSeconds = 0;
+
+          function startRecordingUI() {
+            isRecording = true;
+            micBtn.classList.add("recording");
+            micIcon.className = "ph ph-stop-fill";
+            inputWrapper.classList.add("recording");
+            recordingBar.classList.add("active");
+            recordingLabel.textContent = "Listening...";
+            chatSendBtn.classList.add("disabled");
+            recSeconds = 0;
+            recordingTimer.textContent = "0:00";
+            recTimerInterval = setInterval(() => {
+              recSeconds++;
+              const m = Math.floor(recSeconds / 60);
+              const s = recSeconds % 60;
+              recordingTimer.textContent = m + ":" + String(s).padStart(2, "0");
+            }, 1000);
+          }
+
+          function stopRecordingUI() {
+            isRecording = false;
+            clearInterval(recTimerInterval);
+            micBtn.classList.remove("recording");
+            micIcon.className = "ph ph-microphone";
+            inputWrapper.classList.remove("recording");
+            recordingBar.classList.remove("active");
+            chatSendBtn.classList.remove("disabled");
+          }
+
+          async function startRecording() {
+            try {
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              audioChunks = [];
+              mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+
+              mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) audioChunks.push(e.data);
+              };
+
+              mediaRecorder.onstop = async () => {
+                stream.getTracks().forEach(t => t.stop());
+
+                if (audioChunks.length === 0) {
+                  stopRecordingUI();
+                  return;
+                }
+
+                // Show transcribing state
+                recordingLabel.textContent = "Transcribing...";
+
+                const blob = new Blob(audioChunks, { type: "audio/webm" });
+                const reader = new FileReader();
+                reader.onloadend = async () => {
+                  const base64 = reader.result.split(",")[1];
+                  try {
+                    const result = await window.electronAPI.transcribeAudio(base64);
+                    stopRecordingUI();
+                    if (result && result.text) {
+                      const prev = chatInput.value;
+                      chatInput.value = prev + (prev ? " " : "") + result.text;
+                      chatInput.focus();
+                    } else if (result && result.error) {
+                      appendMessage("system", "Transcription error: " + result.error);
+                    }
+                  } catch (err) {
+                    stopRecordingUI();
+                    appendMessage("system", "Transcription failed. Please try again.");
+                  }
+                };
+                reader.readAsDataURL(blob);
+              };
+
+              mediaRecorder.start();
+              startRecordingUI();
+            } catch (err) {
+              stopRecordingUI();
+              if (err.name === "NotAllowedError") {
+                appendMessage("system", "Microphone access denied. Please allow microphone permissions in your system settings.");
+              } else if (err.name === "NotFoundError") {
+                appendMessage("system", "No microphone found. Please connect a microphone and try again.");
+              } else {
+                appendMessage("system", "Could not access microphone: " + err.message);
+              }
+            }
+          }
+
+          function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === "recording") {
+              mediaRecorder.stop();
+            }
+          }
+
+          micBtn.addEventListener("click", () => {
+            if (isRecording) {
+              stopRecording();
+            } else {
+              startRecording();
+            }
           });
 
       // Quick-action chips logic removed
