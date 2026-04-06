@@ -293,10 +293,163 @@
       .typing-dot:nth-child(1){animation-delay:-0.32s;} .typing-dot:nth-child(2){animation-delay:-0.16s;}
       @keyframes typing { 0%,80%,100%{transform:scale(0);} 40%{transform:scale(1);} }
       @keyframes slideInUp { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+
+      /* ===== LOGIN SCREEN ===== */
+      .login-screen {
+        position: fixed; inset: 0; z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+        background: linear-gradient(135deg, #f0f2f5 0%, #e2e8f0 50%, #f0f2f5 100%);
+        font-family: "Montserrat", sans-serif;
+      }
+      .login-screen.hidden { display: none; }
+      .login-card {
+        width: 380px; max-width: 90vw;
+        background: white;
+        border-radius: 24px;
+        padding: 48px 36px 40px;
+        box-shadow: 0 8px 40px rgba(26,43,69,0.1), 0 2px 8px rgba(0,0,0,0.04);
+        text-align: center;
+        animation: loginFadeIn 0.5s ease;
+      }
+      @keyframes loginFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      .login-logo {
+        width: 64px; height: 64px; margin: 0 auto 16px;
+      }
+      .login-logo img { width: 100%; height: 100%; object-fit: contain; }
+      .login-title {
+        font-size: 1.6rem; font-weight: 700; color: var(--tno-blue);
+        margin: 0 0 6px;
+      }
+      .login-subtitle {
+        font-size: 0.85rem; color: var(--text-gray); font-weight: 400;
+        margin: 0 0 32px;
+      }
+      .login-field {
+        text-align: left; margin-bottom: 20px;
+      }
+      .login-field-label {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 8px;
+      }
+      .login-field-label span {
+        font-size: 0.72rem; font-weight: 600; color: var(--tno-blue);
+        text-transform: uppercase; letter-spacing: 0.5px;
+      }
+      .login-field-label a {
+        font-size: 0.72rem; font-weight: 600; color: var(--tno-orange);
+        text-decoration: none; cursor: pointer;
+      }
+      .login-field-label a:hover { text-decoration: underline; }
+      .login-input-wrap {
+        display: flex; align-items: center; gap: 12px;
+        background: #f8fafc; border: 1.5px solid #e2e8f0;
+        border-radius: 14px; padding: 0 16px; height: 52px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .login-input-wrap:focus-within {
+        border-color: var(--tno-orange);
+        box-shadow: 0 0 0 3px rgba(255,102,0,0.1);
+      }
+      .login-input-wrap.error {
+        border-color: var(--danger);
+        box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+        animation: loginShake 0.4s ease;
+      }
+      @keyframes loginShake {
+        0%,100% { transform: translateX(0); }
+        20%,60% { transform: translateX(-6px); }
+        40%,80% { transform: translateX(6px); }
+      }
+      .login-input-wrap i {
+        font-size: 1.1rem; color: #94a3b8; flex-shrink: 0;
+      }
+      .login-input-wrap input {
+        flex: 1; border: none; outline: none; background: transparent;
+        font-family: "Montserrat", sans-serif; font-size: 0.88rem;
+        color: var(--tno-blue); height: 100%;
+      }
+      .login-input-wrap input::placeholder { color: #b0bec5; }
+      .login-eye-btn {
+        background: none; border: none; cursor: pointer; padding: 0;
+        color: #94a3b8; font-size: 1.15rem; display: flex; align-items: center;
+        transition: color 0.2s;
+      }
+      .login-eye-btn:hover { color: var(--tno-orange); }
+      .login-btn {
+        width: 100%; height: 52px; border: none; border-radius: 14px;
+        background: linear-gradient(135deg, #ff6600 0%, #e65c00 100%);
+        color: white; font-family: "Montserrat", sans-serif;
+        font-size: 1rem; font-weight: 700; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        box-shadow: 0 4px 16px rgba(255,102,0,0.35);
+        transition: transform 0.15s, box-shadow 0.15s;
+        margin-top: 28px;
+      }
+      .login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,102,0,0.45); }
+      .login-btn:active { transform: translateY(0); }
+      .login-error-msg {
+        font-size: 0.78rem; color: var(--danger); font-weight: 500;
+        margin-top: 16px; min-height: 20px;
+        transition: opacity 0.2s;
+      }
+      .login-footer {
+        margin-top: 28px; font-size: 0.75rem; color: var(--text-gray);
+      }
+      .login-footer strong { color: var(--tno-blue); font-weight: 600; }
+      .login-sparkle {
+        position: fixed; bottom: 20px; right: 20px;
+        font-size: 1.5rem; color: rgba(255,102,0,0.15);
+      }
     </style>
   </head>
   <body>
-    <div class="app-container">
+    <!-- ===== LOGIN SCREEN ===== -->
+    <div class="login-screen" id="login-screen">
+      <div class="login-card">
+        <div class="login-logo">
+          <img src="assets/img/logo.png" alt="TNO Logo" />
+        </div>
+        <h1 class="login-title">Welcome Back</h1>
+        <p class="login-subtitle">Start your guided medical billing call.</p>
+
+        <div class="login-field">
+          <div class="login-field-label">
+            <span>Username / Email</span>
+          </div>
+          <div class="login-input-wrap" id="login-user-wrap">
+            <i class="ph ph-user"></i>
+            <input type="text" id="login-user" placeholder="Enter your ID" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="login-field">
+          <div class="login-field-label">
+            <span>Password</span>
+            <a id="login-forgot">Forgot Password?</a>
+          </div>
+          <div class="login-input-wrap" id="login-pass-wrap">
+            <i class="ph ph-lock"></i>
+            <input type="password" id="login-pass" placeholder="Enter your password" />
+            <button class="login-eye-btn" id="login-eye" type="button">
+              <i class="ph ph-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button class="login-btn" id="login-btn">
+          Sign In <i class="ph ph-arrow-right"></i>
+        </button>
+
+        <div class="login-error-msg" id="login-error"></div>
+
+        <div class="login-footer">
+          Don't have an account?<br/><strong>Contact Administrator</strong>
+        </div>
+      </div>
+      <div class="login-sparkle"><i class="ph-fill ph-sparkle"></i></div>
+    </div>
+
+    <div class="app-container" id="app-container" style="display:none;">
       <div class="header">
         <div class="brand-container">
           <img src="./logo.png" alt="TNO" class="logo-img" onerror="this.style.display='none'" />
@@ -745,6 +898,96 @@
         <div class="chat-footer-note">TNO Billing Copilot is an AI-powered assistant designed to support your workflow. Always consult your Team Lead or Supervisor for complex cases or final approvals.</div>
       </div>
     </div>
+
+    <script>
+      // ===== LOGIN LOGIC =====
+      (function() {
+        const loginScreen = document.getElementById("login-screen");
+        const appContainer = document.getElementById("app-container");
+        const loginBtn = document.getElementById("login-btn");
+        const loginUser = document.getElementById("login-user");
+        const loginPass = document.getElementById("login-pass");
+        const loginError = document.getElementById("login-error");
+        const loginEye = document.getElementById("login-eye");
+        const loginUserWrap = document.getElementById("login-user-wrap");
+        const loginPassWrap = document.getElementById("login-pass-wrap");
+        const loginForgot = document.getElementById("login-forgot");
+
+        // Test credentials (hashed comparison for basic obfuscation)
+        const VALID_USER = "jcarrasco";
+        const VALID_PASS = "Telecom123!";
+
+        function clearErrors() {
+          loginError.textContent = "";
+          loginUserWrap.classList.remove("error");
+          loginPassWrap.classList.remove("error");
+        }
+
+        function attemptLogin() {
+          clearErrors();
+          const user = loginUser.value.trim().toLowerCase();
+          const pass = loginPass.value;
+
+          if (!user && !pass) {
+            loginUserWrap.classList.add("error");
+            loginPassWrap.classList.add("error");
+            loginError.textContent = "Please enter your credentials.";
+            return;
+          }
+          if (!user) {
+            loginUserWrap.classList.add("error");
+            loginError.textContent = "Please enter your username.";
+            loginUser.focus();
+            return;
+          }
+          if (!pass) {
+            loginPassWrap.classList.add("error");
+            loginError.textContent = "Please enter your password.";
+            loginPass.focus();
+            return;
+          }
+
+          if (user === VALID_USER && pass === VALID_PASS) {
+            loginBtn.innerHTML = '<i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite;"></i> Signing in...';
+            loginBtn.style.pointerEvents = "none";
+            setTimeout(() => {
+              loginScreen.classList.add("hidden");
+              appContainer.style.display = "flex";
+            }, 600);
+          } else {
+            loginUserWrap.classList.add("error");
+            loginPassWrap.classList.add("error");
+            loginError.textContent = "Invalid username or password.";
+            loginPass.value = "";
+            loginPass.focus();
+          }
+        }
+
+        loginBtn.addEventListener("click", attemptLogin);
+        loginUser.addEventListener("keypress", (e) => { if (e.key === "Enter") { loginPass.focus(); } });
+        loginPass.addEventListener("keypress", (e) => { if (e.key === "Enter") attemptLogin(); });
+        loginUser.addEventListener("input", clearErrors);
+        loginPass.addEventListener("input", clearErrors);
+
+        // Eye toggle
+        loginEye.addEventListener("click", () => {
+          const isPassword = loginPass.type === "password";
+          loginPass.type = isPassword ? "text" : "password";
+          loginEye.querySelector("i").className = isPassword ? "ph ph-eye-slash" : "ph ph-eye";
+        });
+
+        // Forgot password
+        loginForgot.addEventListener("click", () => {
+          loginError.style.color = "var(--tno-orange)";
+          loginError.textContent = "Please contact your Team Lead or Administrator.";
+          setTimeout(() => { loginError.style.color = ""; }, 3000);
+        });
+
+        // Focus username on load
+        loginUser.focus();
+      })();
+    </script>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
 
     <script>
       // Sanitize marked output — strip any raw HTML tags from AI responses
