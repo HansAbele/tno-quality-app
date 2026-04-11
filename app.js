@@ -575,7 +575,8 @@ function updateClosingScript(scenario) {
   if (!el) return;
 
   const base = '"Anything else I can help with? ...';
-  const closing = 'Thank you for calling <strong>Physician\'s Billing</strong>. Have a great day!"';
+  const closingBranded = 'Thank you for calling <strong>Physician\'s Billing</strong>. Have a great day!"';
+  const closingPlain = 'Thank you for calling Physician\'s Billing. Have a great day!"';
 
   const scenarioTips = {
     payment: 'Your payment will be posted within <strong>7-10 business days</strong>.',
@@ -601,9 +602,9 @@ function updateClosingScript(scenario) {
 
   const tip = scenarioTips[scenario];
   if (tip) {
-    el.innerHTML = `${base} <strong>${tip}</strong> ... ${closing}`;
+    el.innerHTML = `${base} ${tip} ... ${closingPlain}`;
   } else {
-    el.innerHTML = `${base} ${closing}`;
+    el.innerHTML = `${base} ${closingBranded}`;
   }
 }
 
