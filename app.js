@@ -570,6 +570,115 @@ function updateScenario() {
   if (allSteps.length > 0) updateProgress(allSteps);
 }
 
+function getClosingTip(scenario) {
+  if (!scenario) return null;
+
+  // --- Check Payment: depends on date entered ---
+  if (scenario === "check_payment") {
+    const days = checkPaymentTimeframe();
+    if (days === "unknown") return 'Please allow 21 business days for check/money order processing.';
+    if (days > 21) return `It\'s been ${days} days. This has been escalated to our AR team for review.`;
+    const remaining = 21 - days;
+    return `It\'s been ${days} days since mailed. Please allow ${remaining} more business day${remaining !== 1 ? 's' : ''} for processing.`;
+  }
+
+  // --- Refund: depends on electronic or standard ---
+  if (scenario === "refund") {
+    const isElectronic = document.getElementById("is-iihs").checked;
+    return isElectronic
+      ? 'Your electronic refund will be processed within 24-48 hours.'
+      : 'Your refund by check will take 6-8 weeks to process.';
+  }
+
+  // --- Claim Status: depends on process/denied + code ---
+  if (scenario === "claim_status") {
+    const status = document.querySelector('input[name="claim-status-radio"]:checked')?.value;
+    if (status === "process") return 'Your claim is currently being processed. Please allow 30-45 days.';
+    if (status === "denied") {
+      const code = document.getElementById("denial-code-input").value.trim().toUpperCase();
+      if (code && denialCodesDB[code]) {
+        const action = denialCodesDB[code].action;
+        if (action.includes("ARF")) return `Denial code ${code} has been noted. This will be reviewed by our AR team.`;
+        if (action.includes("PT RESP")) return `Denial code ${code} indicates this is patient responsibility. Please contact your insurance for details.`;
+        return `Denial code ${code} has been noted. Please follow up with your insurance if needed.`;
+      }
+      return 'The denial has been noted. Please follow up with your insurance or call us back for updates.';
+    }
+    return 'If you have further questions about your claim, don\'t hesitate to call us back.';
+  }
+
+  // --- Payment Plan: depends on calculated amount ---
+  if (scenario === "payment_plan") {
+    const balance = parseFloat(document.getElementById("pp-balance").value);
+    if (!isNaN(balance) && balance > 0) {
+      let months = 0;
+      if (balance <= 100) months = 2;
+      else if (balance <= 300) months = 4;
+      else if (balance <= 600) months = 6;
+      else if (balance <= 900) months = 8;
+      else if (balance <= 1200) months = 10;
+      else if (balance <= 1500) months = 12;
+      else months = Math.ceil(balance / 100);
+      const monthly = (balance / months).toFixed(2);
+      return `Your payment plan is set: $${monthly}/month for ${months} months. First payment is due on the 15th.`;
+    }
+    return 'Your first payment is due on the 15th. You\'ll receive a confirmation.';
+  }
+
+  // --- Follow-up: depends on ticket status ---
+  if (scenario === "followup") {
+    const status = document.querySelector('input[name="ticket-status"]:checked')?.value;
+    if (status === "resolved") return 'Your issue has been resolved. If you have further concerns, feel free to call us back.';
+    if (status === "process") return 'Your case is still being reviewed by our AR team. Please allow a few more days.';
+    if (status === "stalled") return 'We\'ve re-escalated your case to a supervisor. You\'ll receive a callback.';
+    return 'We\'ll continue working on your case. Feel free to call back for updates.';
+  }
+
+  // --- Escalation AR: depends on validation ---
+  if (scenario === "escalation_ar") {
+    const reason = document.getElementById("escalation-reason").value;
+    if (reason === "missing_info" || reason === "valid_other") return 'Your case has been escalated to our AR team. Allow 3-5 business days for review.';
+    if (reason === "hsa_hra" || reason === "pull_coll") return 'We\'re reviewing your request. Our team will follow up if additional info is needed.';
+    if (reason) return 'This request does not require escalation. We\'ve addressed it during this call.';
+    return 'Our AR team will review your case. Allow 3-5 business days.';
+  }
+
+  // --- Self-Pay: depends on discount calculated ---
+  if (scenario === "selfpay") {
+    const amt = parseFloat(document.getElementById("sp-amount").value);
+    const pct = parseFloat(document.getElementById("sp-percent").value);
+    if (!isNaN(amt) && !isNaN(pct) && amt > 0 && pct > 0 && pct <= 100) {
+      const total = (amt - amt * (pct / 100)).toFixed(2);
+      return `With your ${pct}% discount, the total is $${total}. This discount applies only if paid today.`;
+    }
+    return 'Remember, the self-pay discount applies only if paid today.';
+  }
+
+  // --- Law Firm: depends on PI liens ---
+  if (scenario === "law_firm") {
+    const isPILiens = document.getElementById("is-iihs-law").checked;
+    if (isPILiens) return 'For PI Liens cases, please direct requests to piliens@hapusa.com.';
+    return 'Please ensure all records requests go through ChartSwap for processing.';
+  }
+
+  // --- Static scenarios ---
+  const staticTips = {
+    payment: 'Your payment will be posted within 7-10 business days.',
+    hsa_payment: 'HSA/HRA payments take approximately 30 days to post.',
+    paper_bill: 'Your statement will arrive within 5-7 business days. Reply STOP to opt out of texts.',
+    submit_claim: 'We\'ll submit your claim to insurance. Processing takes 30-45 days.',
+    escalation_sup: 'You\'ll receive a callback from a supervisor within 1 business day.',
+    balance_inquiry: 'If you have further questions about your balance, feel free to call us back.',
+    patient_deceased: 'We\'re sorry for your loss. Please send the documents we discussed to patient@medpayment.net.',
+    charity: 'Please submit the required documentation for charity care review.',
+    veteran: 'If you have any issues with your VA/Tricare coverage, please call us back.',
+    mva: 'Please provide the accident insurance details as soon as possible.',
+    wc: 'Please have your employer\'s Workers\' Comp carrier contact us if needed.'
+  };
+
+  return staticTips[scenario] || null;
+}
+
 function updateClosingScript(scenario) {
   const el = document.getElementById("closing-script");
   if (!el) return;
@@ -578,29 +687,7 @@ function updateClosingScript(scenario) {
   const closingBranded = 'Thank you for calling <strong>Physician\'s Billing</strong>. Have a great day!"';
   const closingPlain = 'Thank you for calling Physician\'s Billing. Have a great day!"';
 
-  const scenarioTips = {
-    payment: 'Your payment will be posted within <strong>7-10 business days</strong>.',
-    payment_plan: 'Your first payment is due on the <strong>15th</strong>. You\'ll receive a confirmation.',
-    check_payment: 'Please allow <strong>21 business days</strong> for processing.',
-    hsa_payment: 'HSA/HRA payments take approximately <strong>30 days</strong> to post.',
-    paper_bill: 'Your statement will arrive within <strong>5-7 business days</strong>.',
-    refund: 'Your refund will be processed. Please allow the estimated timeframe we discussed.',
-    submit_claim: 'We\'ll submit your claim. Processing takes <strong>30-45 days</strong>.',
-    escalation_sup: 'You\'ll receive a callback within <strong>1 business day</strong>.',
-    escalation_ar: 'Our AR team will review your case. Allow <strong>3-5 business days</strong>.',
-    claim_status: 'If you have further questions about your claim, don\'t hesitate to call us back.',
-    balance_inquiry: 'If you have further questions about your balance, feel free to call us back.',
-    followup: 'We\'ll continue working on your case. Feel free to call back for updates.',
-    patient_deceased: 'We\'re sorry for your loss. Please send the documents we discussed to the email provided.',
-    selfpay: 'Remember, the discount applies <strong>only if paid today</strong>.',
-    charity: 'Please submit the required documentation for charity care review.',
-    veteran: 'If you have any issues with your VA/Tricare coverage, please call us back.',
-    mva: 'Please provide the accident insurance details as soon as possible.',
-    wc: 'Please have your employer\'s Workers\' Comp carrier contact us if needed.',
-    law_firm: 'Please ensure all requests go through <strong>ChartSwap</strong> for processing.'
-  };
-
-  const tip = scenarioTips[scenario];
+  const tip = getClosingTip(scenario);
   if (tip) {
     el.innerHTML = `${base} ${tip} ... ${closingPlain}`;
   } else {
@@ -627,6 +714,7 @@ function updateClaimStatus() {
     denialContainer.style.display = "block";
     infoBox.style.display = "none";
   }
+  updateClosingScript("claim_status");
 }
 
 function checkDenialCode() {
@@ -665,6 +753,7 @@ function checkDenialCode() {
     infoBox.classList.add("alert-warning");
     infoBox.innerHTML = `CODE <strong>${code}</strong>: NOT FOUND IN DB. CHECK CLIENT FACT SHEET.`;
   }
+  updateClosingScript("claim_status");
 }
 
 function updateProgress(allSteps) {
@@ -704,6 +793,7 @@ function calculatePaymentPlan() {
   document.getElementById("pp-result-text").innerText = `$${(balance/months).toFixed(2)}`;
   document.getElementById("pp-result-term").innerText = `(Term: ${months} months)`;
   res.style.display="block";
+  updateClosingScript("payment_plan");
 }
 
 function calculateSelfPay() {
@@ -714,6 +804,7 @@ function calculateSelfPay() {
   document.getElementById("sp-saved").innerText = `$${saved.toFixed(2)}`;
   document.getElementById("sp-total").innerText = `$${(amt - saved).toFixed(2)}`;
   document.getElementById("sp-result-container").style.display="block";
+  updateClosingScript("selfpay");
 }
 
 function validateEscalation() {
@@ -731,6 +822,7 @@ function validateEscalation() {
   } else {
     box.classList.add("alert-danger"); box.innerHTML = "\ud83d\udeab INVALID / DO NOT ESCALATE.";
   }
+  updateClosingScript("escalation_ar");
 }
 
 // --- END CALL / RESET LOGIC ---
