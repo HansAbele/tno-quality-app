@@ -601,7 +601,7 @@ function updateClosingScript(scenario) {
 
   const tip = scenarioTips[scenario];
   if (tip) {
-    el.innerHTML = `${base} <strong style="color:var(--tno-orange);">${tip}</strong> ... ${closing}`;
+    el.innerHTML = `${base} <strong>${tip}</strong> ... ${closing}`;
   } else {
     el.innerHTML = `${base} ${closing}`;
   }
