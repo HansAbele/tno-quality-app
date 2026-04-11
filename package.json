@@ -13,7 +13,10 @@
   "license": "ISC",
   "devDependencies": {
     "electron": "^33.0.0",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^24.13.3",
+    "mammoth": "^1.11.0",
+    "pdf-parse-new": "^2.0.0",
+    "xlsx": "^0.18.5"
   },
   "build": {
     "appId": "com.tno.qualityapp",
@@ -33,11 +36,6 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.99.1",
-    "dotenv": "^17.3.1",
-    "mammoth": "^1.11.0",
-    "openai": "^6.27.0",
-    "pdf-parse-new": "^2.0.0",
-    "voyageai": "^0.2.1",
-    "xlsx": "^0.18.5"
+    "dotenv": "^17.3.1"
   }
 }

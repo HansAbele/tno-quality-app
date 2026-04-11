@@ -37,6 +37,16 @@ function createWindow() {
   win.loadFile("index.html");
 }
 
+// === LOGIN (Backend - credentials never exposed to renderer) ===
+const VALID_USERS = [
+  { user: "jcarrasco", pass: "Telecom123!" }
+];
+
+ipcMain.handle("login", async (event, user, pass) => {
+  const match = VALID_USERS.find(u => u.user === user.trim().toLowerCase() && u.pass === pass);
+  return { success: !!match };
+});
+
 // === LÓGICA DE GUARDADO (Backend) ===
 ipcMain.handle("save-call-data", async (event, data) => {
   try {
@@ -70,39 +80,37 @@ ipcMain.handle("save-call-data", async (event, data) => {
   }
 });
 
-// === NUEVA LÓGICA: OBTENER HISTORIAL (Backend) ===
-// Esta es la parte nueva que permite leer los archivos guardados
-ipcMain.handle("get-history", async () => {
+// === OBTENER HISTORIAL CON PAGINACIÓN (Backend) ===
+ipcMain.handle("get-history", async (event, { page = 1, limit = 50 } = {}) => {
   try {
     const documentsPath = path.join(os.homedir(), "Documents", "TNO_Logs");
 
-    // Si la carpeta no existe, devolvemos una lista vacía
-    if (!fs.existsSync(documentsPath)) return [];
+    if (!fs.existsSync(documentsPath)) return { calls: [], total: 0, page, limit };
 
-    // Leemos los archivos de la carpeta que terminen en .json
     const files = fs.readdirSync(documentsPath).filter(file => file.endsWith('.json'));
+    files.sort().reverse();
 
     let allCalls = [];
-
-    // Recorremos los archivos en orden inverso (más recientes primero)
-    files.sort().reverse().forEach(file => {
+    for (const file of files) {
       const filePath = path.join(documentsPath, file);
-      const fileContent = fs.readFileSync(filePath, 'utf-8');
       try {
-        const json = JSON.parse(fileContent);
-        // Unimos los datos de este archivo al total
-        if (Array.isArray(json)) {
-          allCalls = allCalls.concat(json);
-        }
+        const json = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        if (Array.isArray(json)) allCalls = allCalls.concat(json);
       } catch (err) {
         console.error("Error leyendo archivo:", file, err);
       }
-    });
+      // Stop reading files once we have enough records
+      if (allCalls.length >= page * limit) break;
+    }
 
-    return allCalls;
+    const total = allCalls.length;
+    const start = (page - 1) * limit;
+    const paginated = allCalls.slice(start, start + limit);
+
+    return { calls: paginated, total, page, limit };
   } catch (error) {
     console.error("Error obteniendo historial:", error);
-    return [];
+    return { calls: [], total: 0, page, limit };
   }
 });
 
@@ -125,20 +133,24 @@ if (missingEnv.length > 0) {
   console.error(`WARNING: Missing environment variables: ${missingEnv.join(", ")}. AI features will not work.`);
 }
 
+// Singleton clients — created once, reused across all requests
+const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
+const supabase = (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+  : null;
+
 ipcMain.handle("ask-copilot", async (event, question) => {
   try {
-    if (!process.env.GEMINI_API_KEY) return { content: "AI is not configured. Please check your .env file (GEMINI_API_KEY missing)." };
+    if (!genAI) return { content: "AI is not configured. Please check your .env file (GEMINI_API_KEY missing)." };
 
     // 1. Convert question to vector using Gemini
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
     const result = await embeddingModel.embedContent(question);
     const queryEmbedding = result.embedding.values;
 
     // 2. Search Supabase database
     let contextText = "No direct company rules found in the manual for this specific query. Answer generally or ask the user for more clarification.";
-    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+    if (supabase) {
       const { data: documents, error } = await supabase.rpc("match_chunks", {
         query_embedding: queryEmbedding,
         match_threshold: 0.5,
@@ -177,7 +189,7 @@ ipcMain.handle("ask-copilot", async (event, question) => {
 const TRANSCRIPTION_MODELS = ["gemini-2.5-flash-lite", "gemini-2.0-flash"];
 
 ipcMain.handle("transcribe-audio", async (event, audioBase64) => {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  if (!genAI) return { error: "AI is not configured." };
 
   for (const modelName of TRANSCRIPTION_MODELS) {
     try {
@@ -200,7 +212,6 @@ ipcMain.handle("transcribe-audio", async (event, audioBase64) => {
       return { text };
     } catch (error) {
       console.error(`Transcription failed with ${modelName}:`, error.message);
-      // Try next model
       continue;
     }
   }
