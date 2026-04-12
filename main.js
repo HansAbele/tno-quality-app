@@ -1,8 +1,19 @@
 const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, ".env") });
+const fs = require("fs");
+
+// Load .env from multiple possible locations (dev vs packaged)
+const envPaths = [
+  path.join(__dirname, ".env"),
+  path.join(process.resourcesPath || __dirname, ".env")
+];
+for (const envPath of envPaths) {
+  if (fs.existsSync(envPath)) {
+    require("dotenv").config({ path: envPath });
+    break;
+  }
+}
 
 const { app, BrowserWindow, ipcMain, screen } = require("electron");
-const fs = require("fs");
 const os = require("os");
 
 function createWindow() {
@@ -39,12 +50,13 @@ function createWindow() {
 
 // === LOGIN (Backend - credentials never exposed to renderer) ===
 const VALID_USERS = [
-  { user: "jcarrasco", pass: "Telecom123!" }
+  { user: "jcarrasco", pass: "Telecom123!", name: "Juan Carrasco" }
 ];
 
 ipcMain.handle("login", async (event, user, pass) => {
   const match = VALID_USERS.find(u => u.user === user.trim().toLowerCase() && u.pass === pass);
-  return { success: !!match };
+  if (match) return { success: true, name: match.name };
+  return { success: false };
 });
 
 // === LÓGICA DE GUARDADO (Backend) ===

@@ -11,6 +11,12 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="styles.css" />
+    <script>
+      (function() {
+        var theme = localStorage.getItem('tno-theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
   </head>
   <body>
     <!-- ===== LOGIN SCREEN ===== -->
@@ -47,7 +53,8 @@
         </div>
 
         <button class="login-btn" id="login-btn">
-          Sign In <i class="ph ph-arrow-right"></i>
+          <span class="login-btn-text">Sign In</span>
+          <i class="ph ph-arrow-right login-btn-icon"></i>
         </button>
 
         <div class="login-error-msg" id="login-error"></div>
@@ -56,23 +63,28 @@
           Don't have an account?<br/><strong>Contact Administrator</strong>
         </div>
       </div>
-      <div class="login-sparkle"><i class="ph-fill ph-sparkle"></i></div>
     </div>
 
     <div class="app-container" id="app-container" style="display:none;">
       <div class="header">
+        <div class="header-spacer"></div>
         <div class="brand-container">
           <img src="./logo.png" alt="TNO" class="logo-img" onerror="this.style.display='none'" />
           <div class="logo-text">Telecom Networks</div>
         </div>
+        <button class="settings-btn" id="settings-btn" title="Settings">
+          <i class="ph ph-gear-six"></i>
+        </button>
       </div>
 
       <div class="stats-bar">
-          <span id="quality-score"><i class="ph ph-chart-bar"></i> QA: 0%</span>
-      </div>
-
-      <div class="progress-container">
-        <div class="progress-bar" id="progress-bar"></div>
+        <span class="qa-label"><i class="ph ph-chart-bar"></i> QA</span>
+        <div class="progress-track">
+          <div class="progress-bar" id="progress-bar">
+            <div class="progress-shimmer"></div>
+          </div>
+        </div>
+        <span class="qa-value" id="quality-score">0%</span>
       </div>
 
       <div class="content">
@@ -215,6 +227,8 @@
                  <li>Update Patient Status to: <strong>"THE ESTATE OF [PT NAME]"</strong>.</li>
                  <li>Advise caller to email Death Certificate to: <br><strong style="color:var(--tno-blue)">patient@medpayment.net</strong> (Attn: Jessica).</li>
                  <li>Advise that <strong>Executor of Estate</strong> documents are required to release specific billing info.</li>
+                 <li><strong style="color:var(--warning-text)">Without Executor docs:</strong> Can ONLY share total balance. No account details or claim breakdowns.</li>
+                 <li><strong style="color:var(--success)">Payments:</strong> You CAN still accept payments and set up payment plans without full authorization.</li>
              </ul>
           </div>
 
@@ -223,10 +237,11 @@
              <ul class="instruction-list">
                  <li>Take Caller Details (Name, Callback #, Acct #).</li>
                  <li>Note the reason for escalation in the account.</li>
-                 <li><strong>Warm Transfer</strong> to Supv Jean (Ext 220).</li>
-                 <li>If no answer: Leave VM & Advise callback within <strong>1 Business Day</strong>.</li>
+                 <li><strong>Warm Transfer</strong> to Supv Jean (Ext 220). Jean will call the patient back.</li>
+                 <li>If no answer: Leave a <strong>detailed VM</strong> (Name, Callback #, Acct #, reason). Advise caller that <strong>Supv Jean</strong> will callback within <strong>1 Business Day</strong>.</li>
                  <li>Send Email with: Subject: <strong>"ESCALATION CALL + ACCNT#"</strong> + (Name, Callback #, Acct #).</li>
                  <li><strong>CC:</strong> Hansl, Rose, Osiris, Adrian, Kayla.</li>
+                 <li><strong>Document:</strong> Leave a detailed note in the account documenting the escalation and all actions taken.</li>
              </ul>
           </div>
 
@@ -252,7 +267,7 @@
              <div id="esc-alert" class="escalation-alert"></div>
           </div>
 
-          <div id="refund-options" class="scenario-form-box" style="background-color: #e0f2fe; border-color: #bfdbfe;">
+          <div id="refund-options" class="scenario-form-box" style="background-color: var(--refund-bg); border-color: var(--refund-border);">
              <h4><i class="ph ph-currency-circle-dollar"></i> Refund Details</h4>
              <label class="checklist-item" style="border:none; background:transparent; padding:0;">
                 <input type="checkbox" id="is-iihs">
@@ -269,14 +284,17 @@
 
           <div id="claim-status-box" class="scenario-form-box">
             <h4><i class="ph ph-calendar-blank"></i> Claim Status</h4>
-            <div style="margin-top: 15px; border-top: 1px dashed #fed7aa; padding-top: 10px;">
+            <div style="margin-top: 15px; border-top: 1px dashed var(--scenario-border); padding-top: 10px;">
                <label class="input-label">Current Status</label>
-               <div class="radio-group">
+               <div class="radio-group" style="flex-wrap: wrap;">
                  <label class="radio-label">
                    <input type="radio" name="claim-status-radio" value="process" /> ⏳ In Process
                  </label>
                  <label class="radio-label">
                    <input type="radio" name="claim-status-radio" value="denied" /> 🚫 Denied
+                 </label>
+                 <label class="radio-label">
+                   <input type="radio" name="claim-status-radio" value="paid" /> ✅ Paid
                  </label>
                </div>
             </div>
@@ -286,7 +304,7 @@
             </div>
          </div>
 
-          <div id="balance-inquiry-box" class="scenario-form-box" style="display: none; background-color: #fff7ed; border-color: #fed7aa;">
+          <div id="balance-inquiry-box" class="scenario-form-box" style="display: none; background-color: var(--scenario-bg); border-color: var(--scenario-border);">
             <div class="alert-warning" style="padding: 10px; border-radius: 6px; border: 1px solid var(--tno-orange); margin-bottom: 10px; font-size: 0.85rem; line-height: 1.4;">
                 <i class="ph ph-warning" style="font-size: 1.1rem; vertical-align: middle; margin-right: 5px;"></i>
                 <strong>IMPORTANT:</strong> Verify the Client Fact Sheet to confirm billable components. Some facilities bill for both components, while others only bill for the Professional Component (PC). Ensure you know what we are authorized to collect.
@@ -296,7 +314,7 @@
                 <div class="accordion" role="presentation">
                   <div class="js-accordion__panel">
                     <h3 class="accordion__heading">
-                      <button class="accordion__trigger" aria-expanded="false" style="background: transparent; border-bottom: 1px dashed #fed7aa;">
+                      <button class="accordion__trigger" aria-expanded="false" style="background: transparent; border-bottom: 1px dashed var(--scenario-border);">
                         👨‍⚕️ Professional Component (PC)
                         <span class="icon-indicator">+</span>
                       </button>
@@ -345,7 +363,7 @@
                 <input type="checkbox" id="is-iihs-law">
                 <strong>PI Liens Case? (Personal Injury)</strong>
              </label>
-             <div id="iihs-law-instruction" style="display:none; margin-top:10px; font-size:0.8rem; color:#c2410c;">
+             <div id="iihs-law-instruction" style="display:none; margin-top:10px; font-size:0.8rem; color:var(--warning-text);">
                 <strong>⚠️ PI LIENS CASE DETECTED:</strong><br>
                 Agreement exists with attorneys. <strong>Do NOT refer to ChartSwap.</strong><br>
                 Verify Attorney Name in Insurance Section/Notes.<br>
@@ -381,18 +399,34 @@
             </details>
           </div>
 
-          <div id="payment-calc-box" class="scenario-form-box" style="display:none; background-color: #fff7ed; border-color: var(--tno-orange);">
+          <div id="payment-calc-box" class="scenario-form-box" style="display:none; background-color: var(--scenario-bg); border-color: var(--tno-orange);">
             <h4><i class="ph ph-calculator"></i> Minimum Monthly Payment</h4>
             <label class="input-label">Current Balance ($)</label>
             <input type="number" id="pp-balance" placeholder="Enter Balance (e.g. 250.00)" step="0.01">
-            <div id="pp-result-container" style="margin-top: 15px; display:none; padding: 10px; background: #fff; border-radius: 6px; border-left: 4px solid var(--tno-orange);">
+            <div id="pp-result-container" style="margin-top: 15px; display:none; padding: 10px; background: var(--bg-card); border-radius: 6px; border-left: 4px solid var(--tno-orange);">
                 <label class="input-label" style="color: var(--text-gray); margin-bottom: 2px;">Minimum Monthly Payment:</label>
                 <div id="pp-result-text" style="font-size: 1.2rem; font-weight: 700; color: var(--tno-blue);">$0.00</div>
                 <div id="pp-result-term" style="font-size: 0.8rem; color: var(--text-gray); font-style: italic;">(Term: 0 months)</div>
             </div>
+            <div id="special-pp-toggle" style="display:none; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--scenario-border);">
+              <label class="checklist-item" style="border:none; background:transparent; padding:0; margin:0;">
+                <input type="checkbox" id="special-pp-check">
+                <strong>Patient can't afford this amount?</strong>
+              </label>
+              <div id="special-pp-form" style="display:none; margin-top: 10px; padding: 10px; background: var(--bg-elevated); border-radius: var(--radius); border-left: 4px solid var(--warning-text);">
+                <label class="input-label" style="color: var(--warning-text);">Special Payment Plan</label>
+                <ul class="instruction-list" style="margin-bottom: 10px;">
+                  <li>Ask patient how much they <strong>can</strong> afford per month.</li>
+                  <li>Ask the <strong>reason</strong> (lack of income, financial hardship, etc.).</li>
+                  <li>Document: Acct #, standard amount, patient's amount, and reason.</li>
+                  <li>Send request to <strong>Client Management</strong> (check HAP Directory for clinic contact).</li>
+                  <li>Take patient's phone # — they will receive a <strong>callback</strong> once approved.</li>
+                </ul>
+              </div>
+            </div>
          </div>
 
-         <div id="selfpay-calc-box" class="scenario-form-box" style="display:none; background-color: #f0fdf4; border-color: #86efac;">
+         <div id="selfpay-calc-box" class="scenario-form-box" style="display:none; background-color: var(--selfpay-bg); border-color: var(--selfpay-border);">
             <h4><i class="ph ph-percent"></i> Discount Calculator</h4>
             <label class="input-label">Original Amount ($)</label>
             <input type="number" id="sp-amount" placeholder="0.00">
@@ -423,7 +457,7 @@
           <div style="margin-top: 20px; border-top: 1px solid var(--border-light); padding-top: 15px;">
             <label class="checklist-item disabled" style="flex-direction: column; align-items: flex-start">
               <div style="display: flex; align-items: center; width: 100%"><input type="checkbox" class="step" id="final-step" /> <i class="ph ph-door-open"></i> <span>Closing & Branding</span></div>
-              <div style="margin-left: 30px; margin-top: 5px; font-size: 0.75rem; color: #64748b; font-style: italic;">"Anything else I can help with? ... Thank you for calling <strong>Physician's Billing</strong>. Have a great day!"</div>
+              <div style="margin-left: 30px; margin-top: 5px; font-size: 0.75rem; color: var(--text-muted); font-style: italic;">"Anything else I can help with? ... Thank you for calling <strong>Physician's Billing</strong>. Have a great day!"</div>
             </label>
             <label class="checklist-item disabled">
               <input type="checkbox" class="step" /> <i class="ph ph-floppy-disk-back"></i> Documented (Coded Note)
@@ -476,7 +510,7 @@
               <div class="msg-avatar">
                 <img src="assets/img/logo.png" alt="Bot">
               </div>
-              <div class="msg-bubble system-bubble">Hi Johan! I'm your TNO Billing Copilot. Ask me any question related to the clinic protocols or patient scenarios!</div>
+              <div class="msg-bubble system-bubble" id="chat-greeting">Hi! I'm your TNO Billing Copilot. Ask me any question related to the clinic protocols or patient scenarios!</div>
             </div>
           </div>
         </div>
@@ -497,6 +531,50 @@
         </div>
 
         <div class="chat-footer-note">TNO Billing Copilot is an AI-powered assistant designed to support your workflow. Always consult your Team Lead or Supervisor for complex cases or final approvals.</div>
+      </div>
+
+      <!-- Settings Panel -->
+      <div class="settings-container" id="settings-container">
+        <div class="settings-header">
+          <div class="settings-header-title"><i class="ph ph-gear-six"></i> Settings</div>
+          <button class="settings-close" id="settings-close-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <line x1="2" y1="2" x2="14" y2="14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <line x1="14" y1="2" x2="2" y2="14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="settings-body">
+          <div class="settings-section">
+            <div class="settings-section-title">Appearance</div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-row-label"><i class="ph ph-moon"></i> Dark Mode</div>
+                <div class="settings-row-desc">Switch between light and dark theme</div>
+              </div>
+              <label class="theme-toggle">
+                <input type="checkbox" id="theme-toggle-input" />
+                <span class="theme-toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Coming Soon</div>
+            <div class="settings-row" style="opacity: 0.5;">
+              <div class="settings-row-label"><i class="ph ph-note-pencil"></i> Call Notes</div>
+            </div>
+            <div class="settings-row" style="opacity: 0.5;">
+              <div class="settings-row-label"><i class="ph ph-bell"></i> Alerts & Notifications</div>
+            </div>
+            <div class="settings-row" style="opacity: 0.5;">
+              <div class="settings-row-label"><i class="ph ph-user-circle"></i> Agent Profile</div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-footer">
+          <button class="logout-btn" id="logout-btn"><i class="ph ph-sign-out"></i> Sign Out</button>
+          <div style="margin-top: 10px;">TNO Quality Companion v1.0.0</div>
+        </div>
       </div>
     </div>
 
