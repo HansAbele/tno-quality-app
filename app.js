@@ -34,6 +34,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Failed to load denial codes:", err);
   }
 
+  // Personalize chat greeting with agent's first name
+  const appContainer = document.getElementById("app-container");
+  const observer = new MutationObserver(() => {
+    const agentName = appContainer.dataset.agentName;
+    if (agentName) {
+      const firstName = agentName.split(" ")[0];
+      const greeting = document.getElementById("chat-greeting");
+      if (greeting) greeting.textContent = `Hi ${firstName}! I'm your TNO Billing Copilot. Ask me any question related to the clinic protocols or patient scenarios!`;
+      observer.disconnect();
+    }
+  });
+  observer.observe(appContainer, { attributes: true, attributeFilter: ["data-agent-name"] });
+
   // Listeners
   const scenarioSelect = document.getElementById("call-scenario");
   scenarioSelect.addEventListener("change", updateScenario);
@@ -61,6 +74,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("sp-amount").addEventListener("input", calculateSelfPay);
   document.getElementById("sp-percent").addEventListener("input", calculateSelfPay);
   document.getElementById("escalation-reason").addEventListener("change", validateEscalation);
+
+  document.getElementById("special-pp-check").addEventListener("change", function() {
+    document.getElementById("special-pp-form").style.display = this.checked ? "block" : "none";
+  });
 
   document.getElementById("end-call-btn").addEventListener("click", endCall);
 
@@ -102,6 +119,49 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   chatCloseBtn.addEventListener("click", () => {
     chatContainer.classList.remove("active");
+  });
+
+  // Settings Panel
+  const settingsBtn = document.getElementById("settings-btn");
+  const settingsContainer = document.getElementById("settings-container");
+  const settingsCloseBtn = document.getElementById("settings-close-btn");
+
+  settingsBtn.addEventListener("click", () => {
+    settingsContainer.classList.add("active");
+  });
+  settingsCloseBtn.addEventListener("click", () => {
+    settingsContainer.classList.remove("active");
+  });
+
+  // Theme Toggle
+  const themeToggleInput = document.getElementById("theme-toggle-input");
+  const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+  themeToggleInput.checked = currentTheme === "dark";
+
+  themeToggleInput.addEventListener("change", () => {
+    const newTheme = themeToggleInput.checked ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("tno-theme", newTheme);
+  });
+
+  // Logout
+  document.getElementById("logout-btn").addEventListener("click", () => {
+    settingsContainer.classList.remove("active");
+    resetUI();
+    const appContainer = document.getElementById("app-container");
+    appContainer.style.display = "none";
+    delete appContainer.dataset.agentName;
+    const greeting = document.getElementById("chat-greeting");
+    if (greeting) greeting.textContent = "Hi! I'm your TNO Billing Copilot. Ask me any question related to the clinic protocols or patient scenarios!";
+    const loginScreen = document.getElementById("login-screen");
+    loginScreen.classList.remove("hidden");
+    document.getElementById("login-user").value = "";
+    document.getElementById("login-pass").value = "";
+    const loginBtn = document.getElementById("login-btn");
+    loginBtn.innerHTML = '<span class="login-btn-text">Sign In</span><i class="ph ph-arrow-right login-btn-icon"></i>';
+    loginBtn.classList.remove("loading");
+    loginBtn.style.pointerEvents = "";
+    document.getElementById("login-user").focus();
   });
 
   function withTimeout(promise, ms) {
@@ -382,7 +442,7 @@ function updateCallerType() {
       hipaaInstructions.classList.add("hipaa-blocked");
     } else {
       instructionHTML = "\u2753 Please select if Patient is Minor or Adult.";
-      hipaaInstructions.style.border = "1px dashed #cbd5e1";
+      hipaaInstructions.style.border = "1px dashed var(--border-light)";
     }
   }
   else if (type === "lawyer") {
@@ -399,7 +459,7 @@ function updateCallerType() {
       hipaaInstructions.classList.add("alert-warning");
     } else {
       instructionHTML = "\u2753 Please verify status in ChartSwap.";
-      hipaaInstructions.style.border = "1px dashed #cbd5e1";
+      hipaaInstructions.style.border = "1px dashed var(--border-light)";
     }
   }
   else {
@@ -585,6 +645,12 @@ function updateClaimStatus() {
   } else if (status === "denied") {
     denialContainer.style.display = "block";
     infoBox.style.display = "none";
+  } else if (status === "paid") {
+    denialContainer.style.display = "none";
+    denialInput.value = "";
+    infoBox.style.display = "block";
+    infoBox.classList.add("alert-success");
+    infoBox.innerHTML = '<strong>PAID:</strong> Claim paid in full. Zero balance.';
   }
 
 }
@@ -614,7 +680,7 @@ function checkDenialCode() {
     }
 
     infoBox.innerHTML = `
-      <div style="font-size:0.9rem; font-weight:800; border-bottom:1px solid rgba(0,0,0,0.1); margin-bottom:5px;">DENIAL: ${code}</div>
+      <div style="font-size:0.9rem; font-weight:800; border-bottom:1px solid var(--border-light); margin-bottom:5px;">DENIAL: ${code}</div>
       <div style="font-size:0.8rem; margin-bottom:5px;"><em>${data.desc}</em></div>
       <div style="font-weight:700; text-transform:uppercase;">ACTION: ${data.action}</div>
       <button onclick="askCopilotAboutDenial('${code}', '${data.desc.replace(/'/g, "\\'")}')" style="margin-top:8px; width:auto; padding:6px 14px; font-size:0.75rem; background:var(--tno-blue); border-radius:20px; display:inline-flex; align-items:center; gap:6px;">
@@ -632,11 +698,34 @@ function updateProgress(allSteps) {
   const checkedCount = allSteps.filter((s) => s.checked).length;
   const total = allSteps.length;
   const percent = total === 0 ? 0 : Math.round((checkedCount / total) * 100);
-  document.getElementById("progress-bar").style.width = percent + "%";
-  document.getElementById("quality-score").innerText = `QA: ${percent}%`;
+  const bar = document.getElementById("progress-bar");
+  const score = document.getElementById("quality-score");
+
+  bar.style.width = percent + "%";
+  score.innerText = percent + "%";
+
+  // Color transition at 67%+
+  bar.classList.toggle("high", percent >= 67 && percent < 100);
+  score.classList.toggle("complete", percent >= 67);
+
+  // Shimmer on each step
+  if (percent > 0 && percent < 100) {
+    bar.classList.remove("animating");
+    void bar.offsetWidth;
+    bar.classList.add("animating");
+  }
+
+  // 100% celebration
   if (percent === 100 && total > 0) {
+    bar.classList.remove("high", "animating");
+    bar.classList.add("complete");
+    score.classList.add("complete");
     document.getElementById("congrats-msg").style.display = "block";
     document.getElementById("end-call-btn").disabled = false;
+  } else {
+    bar.classList.remove("complete");
+    document.getElementById("congrats-msg").style.display = "none";
+    document.getElementById("end-call-btn").disabled = true;
   }
 }
 
@@ -666,6 +755,8 @@ function calculatePaymentPlan() {
   document.getElementById("pp-result-term").innerText = `(Term: ${months} months)`;
   res.style.display="block";
 
+  // Show Special Payment Plan option
+  document.getElementById("special-pp-toggle").style.display = "block";
 }
 
 function calculateSelfPay() {
@@ -719,13 +810,20 @@ function resetUI() {
   updateCallerType();
   updateScenario();
 
-  document.getElementById("progress-bar").style.width = "0%";
-  document.getElementById("quality-score").innerText = "QA: 0%";
+  const progressBar = document.getElementById("progress-bar");
+  progressBar.style.width = "0%";
+  progressBar.classList.remove("high", "complete", "animating");
+  const qaScore = document.getElementById("quality-score");
+  qaScore.innerText = "0%";
+  qaScore.classList.remove("complete");
   document.getElementById("congrats-msg").style.display = "none";
   document.getElementById("end-call-btn").disabled = true;
 
   const chatContainer = document.getElementById("chat-container");
   if(chatContainer) chatContainer.classList.remove("active");
+
+  const settingsPanel = document.getElementById("settings-container");
+  if(settingsPanel) settingsPanel.classList.remove("active");
 
   const chatMessages = document.getElementById("chat-messages");
   if(chatMessages) {

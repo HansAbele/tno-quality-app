@@ -6,3 +6,5 @@ dist/
 .vscode/
 error.json
 error.txt
+*.backup.*
+*.backup

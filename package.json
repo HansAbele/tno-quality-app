@@ -20,6 +20,17 @@
   },
   "build": {
     "appId": "com.tno.qualityapp",
+    "productName": "TNO Quality Companion",
+    "files": [
+      "**/*",
+      ".env"
+    ],
+    "extraResources": [
+      {
+        "from": ".env",
+        "to": ".env"
+      }
+    ],
     "linux": {
       "target": [
         "AppImage"
@@ -30,6 +41,7 @@
     "win": {
       "target": "dir",
       "icon": "logo.png",
+      "signAndEditExecutable": false,
       "forceCodeSigning": false
     }
   },

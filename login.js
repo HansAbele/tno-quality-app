@@ -40,18 +40,22 @@
       return;
     }
 
-    loginBtn.innerHTML = '<i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite;"></i> Signing in...';
+    loginBtn.innerHTML = '<span class="login-btn-text">Signing in</span><i class="ph ph-spinner login-btn-spinner"></i>';
+    loginBtn.classList.add("loading");
     loginBtn.style.pointerEvents = "none";
 
     try {
       const result = await window.electronAPI.login(user, pass);
       if (result.success) {
+        // Store agent name for app-wide use
+        appContainer.dataset.agentName = result.name || "";
         setTimeout(() => {
           loginScreen.classList.add("hidden");
           appContainer.style.display = "flex";
         }, 600);
       } else {
-        loginBtn.innerHTML = 'Sign In <i class="ph ph-arrow-right"></i>';
+        loginBtn.innerHTML = '<span class="login-btn-text">Sign In</span><i class="ph ph-arrow-right login-btn-icon"></i>';
+        loginBtn.classList.remove("loading");
         loginBtn.style.pointerEvents = "";
         loginUserWrap.classList.add("error");
         loginPassWrap.classList.add("error");
@@ -60,7 +64,8 @@
         loginPass.focus();
       }
     } catch (err) {
-      loginBtn.innerHTML = 'Sign In <i class="ph ph-arrow-right"></i>';
+      loginBtn.innerHTML = '<span class="login-btn-text">Sign In</span><i class="ph ph-arrow-right login-btn-icon"></i>';
+        loginBtn.classList.remove("loading");
       loginBtn.style.pointerEvents = "";
       loginError.textContent = "Connection error. Please try again.";
     }
