@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TNO Quality Companion</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -15,6 +15,11 @@
       (function() {
         var theme = localStorage.getItem('tno-theme') || 'light';
         document.documentElement.setAttribute('data-theme', theme);
+        var fontSize = localStorage.getItem('tno-font-size') || 'default';
+        var sizeMap = { small: '14px', default: '16px', large: '18px' };
+        document.documentElement.style.fontSize = sizeMap[fontSize] || '16px';
+        var fontFamily = localStorage.getItem('tno-font-family') || 'Montserrat';
+        document.documentElement.style.setProperty('--app-font-family', fontFamily + ', sans-serif');
       })();
     </script>
   </head>
@@ -286,15 +291,12 @@
             <h4><i class="ph ph-calendar-blank"></i> Claim Status</h4>
             <div style="margin-top: 15px; border-top: 1px dashed var(--scenario-border); padding-top: 10px;">
                <label class="input-label">Current Status</label>
-               <div class="radio-group" style="flex-wrap: wrap;">
+               <div class="radio-group">
                  <label class="radio-label">
                    <input type="radio" name="claim-status-radio" value="process" /> ⏳ In Process
                  </label>
                  <label class="radio-label">
                    <input type="radio" name="claim-status-radio" value="denied" /> 🚫 Denied
-                 </label>
-                 <label class="radio-label">
-                   <input type="radio" name="claim-status-radio" value="paid" /> ✅ Paid
                  </label>
                </div>
             </div>
@@ -545,29 +547,124 @@
           </button>
         </div>
         <div class="settings-body">
-          <div class="settings-section">
-            <div class="settings-section-title">Appearance</div>
-            <div class="settings-row">
-              <div>
-                <div class="settings-row-label"><i class="ph ph-moon"></i> Dark Mode</div>
-                <div class="settings-row-desc">Switch between light and dark theme</div>
+          <!-- Main View -->
+          <div class="settings-view" id="settings-main-view">
+            <div class="settings-section">
+              <div class="settings-nav-row" id="nav-appearance">
+                <div class="settings-row-label"><i class="ph ph-paint-brush"></i> Appearance</div>
+                <i class="ph ph-caret-right settings-nav-arrow"></i>
               </div>
-              <label class="theme-toggle">
-                <input type="checkbox" id="theme-toggle-input" />
-                <span class="theme-toggle-slider"></span>
-              </label>
+              <div class="settings-nav-row" id="nav-quickref">
+                <div class="settings-row-label"><i class="ph ph-clipboard-text"></i> Quick Reference</div>
+                <i class="ph ph-caret-right settings-nav-arrow"></i>
+              </div>
+              <div class="settings-nav-row" id="nav-vault">
+                <div class="settings-row-label"><i class="ph ph-lock-key"></i> Password Vault</div>
+                <i class="ph ph-caret-right settings-nav-arrow"></i>
+              </div>
+            </div>
+            <div class="settings-section">
+              <div class="settings-section-title">Coming Soon</div>
+              <div class="settings-row" style="opacity: 0.5;">
+                <div class="settings-row-label"><i class="ph ph-note-pencil"></i> Call Notes</div>
+              </div>
+              <div class="settings-row" style="opacity: 0.5;">
+                <div class="settings-row-label"><i class="ph ph-user-circle"></i> Agent Profile</div>
+              </div>
             </div>
           </div>
-          <div class="settings-section">
-            <div class="settings-section-title">Coming Soon</div>
-            <div class="settings-row" style="opacity: 0.5;">
-              <div class="settings-row-label"><i class="ph ph-note-pencil"></i> Call Notes</div>
+          <!-- Appearance Sub-View -->
+          <div class="settings-view settings-subview" id="settings-appearance-view">
+            <button class="settings-back-btn" id="settings-back-btn">
+              <i class="ph ph-caret-left"></i> Back
+            </button>
+            <div class="settings-section">
+              <div class="settings-section-title">Theme</div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label"><i class="ph ph-moon"></i> Dark Mode</div>
+                  <div class="settings-row-desc">Switch between light and dark theme</div>
+                </div>
+                <label class="theme-toggle">
+                  <input type="checkbox" id="theme-toggle-input" />
+                  <span class="theme-toggle-slider"></span>
+                </label>
+              </div>
             </div>
-            <div class="settings-row" style="opacity: 0.5;">
-              <div class="settings-row-label"><i class="ph ph-bell"></i> Alerts & Notifications</div>
+            <div class="settings-section">
+              <div class="settings-section-title">Typography</div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label"><i class="ph ph-text-aa"></i> Font Size</div>
+                </div>
+                <div class="segmented-control" id="font-size-control">
+                  <button class="segmented-btn" data-value="small">A-</button>
+                  <button class="segmented-btn active" data-value="default">A</button>
+                  <button class="segmented-btn" data-value="large">A+</button>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label"><i class="ph ph-text-t"></i> Font</div>
+                </div>
+                <select class="settings-select" id="font-family-select">
+                  <option value="Montserrat" selected>Montserrat</option>
+                  <option value="Lora">Lora</option>
+                  <option value="Space Grotesk">Space Grotesk</option>
+                </select>
+              </div>
             </div>
-            <div class="settings-row" style="opacity: 0.5;">
-              <div class="settings-row-label"><i class="ph ph-user-circle"></i> Agent Profile</div>
+          </div>
+          <!-- Quick Reference Sub-View -->
+          <div class="settings-view settings-subview" id="settings-quickref-view">
+            <button class="settings-back-btn settings-back-btn-qr">
+              <i class="ph ph-caret-left"></i> Back
+            </button>
+            <div class="settings-section">
+              <div class="settings-section-title">Contacts</div>
+              <div class="ref-item">
+                <div class="ref-info">
+                  <div class="ref-label"><i class="ph ph-envelope-simple"></i> Documents Email</div>
+                  <div class="ref-value">patient@medpayment.net</div>
+                </div>
+                <button class="copy-btn" data-copy="patient@medpayment.net" title="Copy"><i class="ph ph-copy"></i></button>
+              </div>
+              <div class="ref-item">
+                <div class="ref-info">
+                  <div class="ref-label"><i class="ph ph-phone"></i> Main Phone</div>
+                  <div class="ref-value">888-333-8833</div>
+                </div>
+                <button class="copy-btn" data-copy="888-333-8833" title="Copy"><i class="ph ph-copy"></i></button>
+              </div>
+              <div class="ref-item">
+                <div class="ref-info">
+                  <div class="ref-label"><i class="ph ph-user-circle-gear"></i> Supervisor</div>
+                  <div class="ref-value">Jean — Ext 220</div>
+                </div>
+                <button class="copy-btn" data-copy="Ext 220" title="Copy"><i class="ph ph-copy"></i></button>
+              </div>
+            </div>
+          </div>
+          <!-- Password Vault Sub-View -->
+          <div class="settings-view settings-subview" id="settings-vault-view">
+            <button class="settings-back-btn settings-back-btn-vault">
+              <i class="ph ph-caret-left"></i> Back
+            </button>
+            <div class="settings-section">
+              <div class="settings-section-title"><i class="ph ph-lock-key" style="margin:0 4px 0 0; font-size:0.8rem;"></i> Password Vault</div>
+              <div id="vault-list"></div>
+              <button class="vault-add-btn" id="vault-add-btn">
+                <i class="ph ph-plus"></i> Add Credential
+              </button>
+              <div id="vault-add-form" class="vault-form" style="display:none;">
+                <input type="text" id="vault-name" placeholder="Name (e.g. Outlook, Remote Desktop)">
+                <input type="text" id="vault-user" placeholder="Username or Email">
+                <input type="password" id="vault-pass" placeholder="Password">
+                <div class="vault-form-actions">
+                  <button class="vault-save-btn" id="vault-save-btn"><i class="ph ph-floppy-disk"></i> Save</button>
+                  <button class="vault-cancel-btn" id="vault-cancel-btn">Cancel</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

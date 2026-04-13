@@ -13,7 +13,7 @@ for (const envPath of envPaths) {
   }
 }
 
-const { app, BrowserWindow, ipcMain, screen } = require("electron");
+const { app, BrowserWindow, ipcMain, screen, safeStorage } = require("electron");
 const os = require("os");
 
 function createWindow() {
@@ -88,6 +88,34 @@ ipcMain.handle("save-call-data", async (event, data) => {
     return { success: true, path: filePath };
   } catch (error) {
     console.error("Error guardando:", error);
+    return { success: false, error: error.message };
+  }
+});
+
+// === PASSWORD VAULT (Encrypted with OS Credential Manager) ===
+const VAULT_DIR = path.join(os.homedir(), "Documents", "TNO_Vault");
+const VAULT_FILE = path.join(VAULT_DIR, "vault.enc");
+
+ipcMain.handle("vault-load", async () => {
+  try {
+    if (!fs.existsSync(VAULT_FILE)) return { success: true, entries: [] };
+    const encrypted = fs.readFileSync(VAULT_FILE);
+    const decrypted = safeStorage.decryptString(encrypted);
+    return { success: true, entries: JSON.parse(decrypted) };
+  } catch (error) {
+    console.error("Vault load error:", error);
+    return { success: true, entries: [] };
+  }
+});
+
+ipcMain.handle("vault-save", async (event, entries) => {
+  try {
+    if (!fs.existsSync(VAULT_DIR)) fs.mkdirSync(VAULT_DIR, { recursive: true });
+    const encrypted = safeStorage.encryptString(JSON.stringify(entries));
+    fs.writeFileSync(VAULT_FILE, encrypted);
+    return { success: true };
+  } catch (error) {
+    console.error("Vault save error:", error);
     return { success: false, error: error.message };
   }
 });

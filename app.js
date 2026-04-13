@@ -127,6 +127,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const settingsCloseBtn = document.getElementById("settings-close-btn");
 
   settingsBtn.addEventListener("click", () => {
+    settingsBody.classList.remove("show-subview");
+    settingsBody.querySelectorAll(".settings-subview").forEach(v => v.classList.remove("active-subview"));
     settingsContainer.classList.add("active");
   });
   settingsCloseBtn.addEventListener("click", () => {
@@ -142,6 +144,180 @@ document.addEventListener("DOMContentLoaded", async () => {
     const newTheme = themeToggleInput.checked ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", newTheme);
     localStorage.setItem("tno-theme", newTheme);
+  });
+
+  // Settings sub-view navigation
+  const settingsBody = document.querySelector(".settings-body");
+  function openSubview(viewId) {
+    settingsBody.querySelectorAll(".settings-subview").forEach(v => v.classList.remove("active-subview"));
+    document.getElementById(viewId).classList.add("active-subview");
+    settingsBody.classList.add("show-subview");
+  }
+  function closeSubview() {
+    settingsBody.classList.remove("show-subview");
+    setTimeout(() => {
+      settingsBody.querySelectorAll(".settings-subview").forEach(v => v.classList.remove("active-subview"));
+    }, 350);
+  }
+  document.getElementById("nav-appearance").addEventListener("click", () => openSubview("settings-appearance-view"));
+  document.getElementById("nav-quickref").addEventListener("click", () => openSubview("settings-quickref-view"));
+  document.getElementById("nav-vault").addEventListener("click", () => { openSubview("settings-vault-view"); loadVault(); });
+  settingsBody.querySelectorAll(".settings-back-btn").forEach(btn => {
+    btn.addEventListener("click", closeSubview);
+  });
+
+  // Font Size
+  const fontSizeControl = document.getElementById("font-size-control");
+  const savedFontSize = localStorage.getItem("tno-font-size") || "default";
+  const sizeMap = { small: "14px", default: "16px", large: "18px" };
+  fontSizeControl.querySelectorAll(".segmented-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.value === savedFontSize);
+  });
+  fontSizeControl.addEventListener("click", (e) => {
+    const btn = e.target.closest(".segmented-btn");
+    if (!btn) return;
+    const size = btn.dataset.value;
+    document.documentElement.style.fontSize = sizeMap[size];
+    localStorage.setItem("tno-font-size", size);
+    fontSizeControl.querySelectorAll(".segmented-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  });
+
+  // Font Family
+  const fontFamilySelect = document.getElementById("font-family-select");
+  const savedFontFamily = localStorage.getItem("tno-font-family") || "Montserrat";
+  fontFamilySelect.value = savedFontFamily;
+  document.documentElement.style.setProperty("--app-font-family", savedFontFamily + ", sans-serif");
+  fontFamilySelect.addEventListener("change", () => {
+    const family = fontFamilySelect.value;
+    document.documentElement.style.setProperty("--app-font-family", family + ", sans-serif");
+    localStorage.setItem("tno-font-family", family);
+  });
+
+  // Quick Reference Copy
+  document.querySelectorAll(".copy-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const text = btn.dataset.copy;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add("copied");
+        btn.querySelector("i").className = "ph ph-check";
+        setTimeout(() => {
+          btn.classList.remove("copied");
+          btn.querySelector("i").className = "ph ph-copy";
+        }, 1500);
+      });
+    });
+  });
+
+  // Password Vault
+  let vaultEntries = [];
+  const vaultList = document.getElementById("vault-list");
+  const vaultAddBtn = document.getElementById("vault-add-btn");
+  const vaultAddForm = document.getElementById("vault-add-form");
+  const vaultSaveBtn = document.getElementById("vault-save-btn");
+  const vaultCancelBtn = document.getElementById("vault-cancel-btn");
+
+  async function loadVault() {
+    const result = await window.electronAPI.vaultLoad();
+    vaultEntries = result.entries || [];
+    renderVault();
+  }
+
+  function renderVault() {
+    if (vaultEntries.length === 0) {
+      vaultList.innerHTML = '<div class="vault-empty"><i class="ph ph-lock-key" style="font-size:1.5rem; display:block; margin-bottom:6px;"></i>No saved credentials yet.</div>';
+      return;
+    }
+    vaultList.innerHTML = vaultEntries.map((entry, idx) => `
+      <div class="vault-entry" data-idx="${idx}">
+        <div class="vault-entry-header">
+          <div class="vault-entry-name"><i class="ph ph-key"></i> ${entry.name}</div>
+          <button class="vault-delete-btn" data-idx="${idx}" title="Delete"><i class="ph ph-trash"></i></button>
+        </div>
+        <div class="vault-field">
+          <div class="vault-field-info">
+            <div class="vault-field-label">Username</div>
+            <div class="vault-field-value">${entry.username}</div>
+          </div>
+          <div class="vault-field-actions">
+            <button class="copy-btn" data-copy="${entry.username}" title="Copy"><i class="ph ph-copy"></i></button>
+          </div>
+        </div>
+        <div class="vault-field">
+          <div class="vault-field-info">
+            <div class="vault-field-label">Password</div>
+            <div class="vault-field-value vault-password" data-pass="${entry.password}">••••••••</div>
+          </div>
+          <div class="vault-field-actions">
+            <button class="vault-eye-btn" title="Show/Hide"><i class="ph ph-eye"></i></button>
+            <button class="copy-btn" data-copy="${entry.password}" title="Copy"><i class="ph ph-copy"></i></button>
+          </div>
+        </div>
+      </div>
+    `).join("");
+    attachVaultListeners();
+  }
+
+  function attachVaultListeners() {
+    vaultList.querySelectorAll(".vault-delete-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const idx = parseInt(btn.dataset.idx);
+        const name = vaultEntries[idx].name;
+        if (!confirm(`Delete "${name}" from vault?`)) return;
+        vaultEntries.splice(idx, 1);
+        await window.electronAPI.vaultSave(vaultEntries);
+        renderVault();
+      });
+    });
+    vaultList.querySelectorAll(".vault-eye-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const field = btn.closest(".vault-field").querySelector(".vault-password");
+        const isHidden = field.textContent === "••••••••";
+        field.textContent = isHidden ? field.dataset.pass : "••••••••";
+        btn.querySelector("i").className = isHidden ? "ph ph-eye-slash" : "ph ph-eye";
+      });
+    });
+    vaultList.querySelectorAll(".copy-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        navigator.clipboard.writeText(btn.dataset.copy).then(() => {
+          btn.classList.add("copied");
+          btn.querySelector("i").className = "ph ph-check";
+          setTimeout(() => {
+            btn.classList.remove("copied");
+            btn.querySelector("i").className = "ph ph-copy";
+          }, 1500);
+        });
+      });
+    });
+  }
+
+  vaultAddBtn.addEventListener("click", () => {
+    vaultAddForm.style.display = "block";
+    vaultAddBtn.style.display = "none";
+    document.getElementById("vault-name").focus();
+  });
+
+  vaultCancelBtn.addEventListener("click", () => {
+    vaultAddForm.style.display = "none";
+    vaultAddBtn.style.display = "";
+    document.getElementById("vault-name").value = "";
+    document.getElementById("vault-user").value = "";
+    document.getElementById("vault-pass").value = "";
+  });
+
+  vaultSaveBtn.addEventListener("click", async () => {
+    const name = document.getElementById("vault-name").value.trim();
+    const username = document.getElementById("vault-user").value.trim();
+    const password = document.getElementById("vault-pass").value;
+    if (!name || !username || !password) return;
+    vaultEntries.push({ id: Date.now().toString(), name, username, password });
+    await window.electronAPI.vaultSave(vaultEntries);
+    vaultAddForm.style.display = "none";
+    vaultAddBtn.style.display = "";
+    document.getElementById("vault-name").value = "";
+    document.getElementById("vault-user").value = "";
+    document.getElementById("vault-pass").value = "";
+    renderVault();
   });
 
   // Logout
@@ -360,7 +536,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>`;
     } else {
       msgDiv.innerHTML = `
-        <div class="msg-avatar" style="background:var(--tno-blue);">${userIcon}</div>
+        <div class="msg-avatar user-avatar">${userIcon}</div>
         <div class="msg-bubble user-bubble">${formattedText}</div>`;
     }
 
@@ -645,12 +821,6 @@ function updateClaimStatus() {
   } else if (status === "denied") {
     denialContainer.style.display = "block";
     infoBox.style.display = "none";
-  } else if (status === "paid") {
-    denialContainer.style.display = "none";
-    denialInput.value = "";
-    infoBox.style.display = "block";
-    infoBox.classList.add("alert-success");
-    infoBox.innerHTML = '<strong>PAID:</strong> Claim paid in full. Zero balance.';
   }
 
 }
@@ -683,7 +853,7 @@ function checkDenialCode() {
       <div style="font-size:0.9rem; font-weight:800; border-bottom:1px solid var(--border-light); margin-bottom:5px;">DENIAL: ${code}</div>
       <div style="font-size:0.8rem; margin-bottom:5px;"><em>${data.desc}</em></div>
       <div style="font-weight:700; text-transform:uppercase;">ACTION: ${data.action}</div>
-      <button onclick="askCopilotAboutDenial('${code}', '${data.desc.replace(/'/g, "\\'")}')" style="margin-top:8px; width:auto; padding:6px 14px; font-size:0.75rem; background:var(--tno-blue); border-radius:20px; display:inline-flex; align-items:center; gap:6px;">
+      <button onclick="askCopilotAboutDenial('${code}', '${data.desc.replace(/'/g, "\\'")}')" style="margin-top:8px; width:auto; padding:6px 14px; font-size:0.75rem; background:var(--tno-orange); border-radius:20px; display:inline-flex; align-items:center; gap:6px;">
         <i class="ph ph-robot" style="color:white; font-size:0.9rem; margin:0;"></i> Ask Copilot about this
       </button>
     `;
