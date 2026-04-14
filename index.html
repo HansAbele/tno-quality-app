@@ -26,7 +26,8 @@
   <body>
     <!-- ===== LOGIN SCREEN ===== -->
     <div class="login-screen" id="login-screen">
-      <div class="login-card">
+      <!-- Login Card -->
+      <div class="login-card" id="login-card">
         <div class="login-logo">
           <img src="assets/img/logo.png" alt="TNO Logo" />
         </div>
@@ -57,6 +58,11 @@
           </div>
         </div>
 
+        <label class="remember-me">
+          <input type="checkbox" id="remember-me-check" />
+          <span>Remember me</span>
+        </label>
+
         <button class="login-btn" id="login-btn">
           <span class="login-btn-text">Sign In</span>
           <i class="ph ph-arrow-right login-btn-icon"></i>
@@ -66,6 +72,48 @@
 
         <div class="login-footer">
           Don't have an account?<br/><strong>Contact Administrator</strong>
+        </div>
+      </div>
+
+      <!-- First-Time Setup Card -->
+      <div class="login-card" id="setup-card" style="display:none;">
+        <div class="login-logo">
+          <img src="assets/img/logo.png" alt="TNO Logo" />
+        </div>
+        <h1 class="login-title">Welcome!</h1>
+        <p class="login-subtitle" id="setup-greeting">Set up your password to get started.</p>
+
+        <div class="login-field">
+          <div class="login-field-label"><span>Create Password</span></div>
+          <div class="login-input-wrap" id="setup-pass-wrap">
+            <i class="ph ph-lock"></i>
+            <input type="password" id="setup-pass" placeholder="Create a password" />
+            <button class="login-eye-btn" id="setup-eye-1" type="button">
+              <i class="ph ph-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="login-field">
+          <div class="login-field-label"><span>Confirm Password</span></div>
+          <div class="login-input-wrap" id="setup-confirm-wrap">
+            <i class="ph ph-lock-key"></i>
+            <input type="password" id="setup-confirm" placeholder="Confirm your password" />
+            <button class="login-eye-btn" id="setup-eye-2" type="button">
+              <i class="ph ph-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button class="login-btn" id="setup-btn">
+          <span class="login-btn-text">Set Up Account</span>
+          <i class="ph ph-arrow-right login-btn-icon"></i>
+        </button>
+
+        <div class="login-error-msg" id="setup-error"></div>
+
+        <div class="login-footer">
+          <a id="setup-back-link" style="cursor:pointer; color:var(--tno-orange); font-weight:600;"><i class="ph ph-caret-left" style="font-size:0.8rem;"></i> Back to login</a>
         </div>
       </div>
     </div>
@@ -131,7 +179,7 @@
                   </button>
                 </h3>
                 <div class="accordion__content" role="region" aria-hidden="true" style="display: none;">
-                  <p>"Hello, this is [Name] with Physician's Billing returning your call. We apologize for missing your call. Please call us back at the same number you dialed. Just in case, our phone number is 888-333-8833. Thank you for calling Physician's Billing. Have a great day."</p>
+                  <p>"Hello, this is [Name] with Physician's Billing returning your call. We apologize for missing your call. Please call us back at the same number you dialed. Just in case, our phone number is 888-333-8131. Thank you for calling Physician's Billing. Have a great day."</p>
                 </div>
               </div>
             </div>
@@ -207,6 +255,7 @@
               <option value="payment">Make a Payment</option>
               <option value="payment_plan">Set up Payment Plan</option>
               <option value="balance_inquiry">Balance Inquiry</option>
+              <option value="collections">Balance in Collections</option>
               <option value="claim_status">Claim Status</option>
               <option value="submit_claim">Submit Claim to Insurance</option>
               <option value="check_payment">Payment by Check/Money Order - Not Received</option>
@@ -234,6 +283,7 @@
                  <li>Advise that <strong>Executor of Estate</strong> documents are required to release specific billing info.</li>
                  <li><strong style="color:var(--warning-text)">Without Executor docs:</strong> Can ONLY share total balance. No account details or claim breakdowns.</li>
                  <li><strong style="color:var(--success)">Payments:</strong> You CAN still accept payments and set up payment plans without full authorization.</li>
+                 <li><strong style="color:var(--info-text)">Family liability:</strong> Spouse, children, or relatives are <strong>NOT responsible</strong> for the bill. If unpaid, it will be sent to collections and eventually written off.</li>
              </ul>
           </div>
 
@@ -340,6 +390,17 @@
                 </div>
             </section>
          </div>
+
+          <div id="collections-form" class="scenario-form-box">
+             <h4><i class="ph ph-archive-box"></i> Balance in Collections</h4>
+             <ul class="instruction-list">
+                 <li>Check <strong>Client Fact Sheet</strong> for Collection Agency name and phone #.</li>
+                 <li>Provide collection agency contact info to the caller.</li>
+             </ul>
+             <button onclick="askCopilotCollections()" style="margin-top:10px; width:auto; padding:8px 16px; font-size:0.75rem; background:var(--tno-orange); border-radius:20px; display:inline-flex; align-items:center; gap:6px;">
+               <i class="ph ph-warning-circle" style="color:white; font-size:0.9rem; margin:0;"></i> Sent by error? Ask Copilot for valid reasons
+             </button>
+          </div>
 
           <div id="insurance-submit-form" class="scenario-form-box">
              <h4><i class="ph ph-file-plus"></i> Submit Claim to Insurance</h4>
@@ -564,12 +625,15 @@
               </div>
             </div>
             <div class="settings-section">
+              <div class="settings-nav-row" id="nav-profile">
+                <div class="settings-row-label"><i class="ph ph-user-circle"></i> Agent Profile</div>
+                <i class="ph ph-caret-right settings-nav-arrow"></i>
+              </div>
+            </div>
+            <div class="settings-section">
               <div class="settings-section-title">Coming Soon</div>
               <div class="settings-row" style="opacity: 0.5;">
                 <div class="settings-row-label"><i class="ph ph-note-pencil"></i> Call Notes</div>
-              </div>
-              <div class="settings-row" style="opacity: 0.5;">
-                <div class="settings-row-label"><i class="ph ph-user-circle"></i> Agent Profile</div>
               </div>
             </div>
           </div>
@@ -632,9 +696,9 @@
               <div class="ref-item">
                 <div class="ref-info">
                   <div class="ref-label"><i class="ph ph-phone"></i> Main Phone</div>
-                  <div class="ref-value">888-333-8833</div>
+                  <div class="ref-value">888-333-8131</div>
                 </div>
-                <button class="copy-btn" data-copy="888-333-8833" title="Copy"><i class="ph ph-copy"></i></button>
+                <button class="copy-btn" data-copy="888-333-8131" title="Copy"><i class="ph ph-copy"></i></button>
               </div>
               <div class="ref-item">
                 <div class="ref-info">
@@ -664,6 +728,48 @@
                   <button class="vault-save-btn" id="vault-save-btn"><i class="ph ph-floppy-disk"></i> Save</button>
                   <button class="vault-cancel-btn" id="vault-cancel-btn">Cancel</button>
                 </div>
+              </div>
+            </div>
+          </div>
+          <!-- Agent Profile Sub-View -->
+          <div class="settings-view settings-subview" id="settings-profile-view">
+            <button class="settings-back-btn settings-back-btn-profile">
+              <i class="ph ph-caret-left"></i> Back
+            </button>
+            <div class="settings-section">
+              <div class="profile-card">
+                <div class="profile-avatar"><i class="ph ph-user-circle"></i></div>
+                <div class="profile-name" id="profile-name">—</div>
+                <div class="profile-role">Billing Agent</div>
+              </div>
+              <div class="profile-field">
+                <div class="profile-field-label">Username</div>
+                <div class="profile-field-value" id="profile-username">—</div>
+              </div>
+              <div class="profile-field">
+                <div class="profile-field-label">Role</div>
+                <div class="profile-field-value">Billing Agent</div>
+              </div>
+            </div>
+            <div class="settings-section">
+              <div class="settings-section-title">Change Password</div>
+              <div class="pass-change-form">
+                <div class="pass-field">
+                  <label class="pass-field-label">Current Password</label>
+                  <input type="password" id="profile-current-pass" placeholder="Enter current password">
+                </div>
+                <div class="pass-field">
+                  <label class="pass-field-label">New Password</label>
+                  <input type="password" id="profile-new-pass" placeholder="Enter new password">
+                </div>
+                <div class="pass-field">
+                  <label class="pass-field-label">Confirm Password</label>
+                  <input type="password" id="profile-confirm-pass" placeholder="Confirm new password">
+                </div>
+                <div id="profile-pass-msg" class="pass-msg"></div>
+                <button class="vault-save-btn" id="profile-change-pass-btn">
+                  <i class="ph ph-key"></i> Update Password
+                </button>
               </div>
             </div>
           </div>

@@ -48,15 +48,91 @@ function createWindow() {
   win.loadFile("index.html");
 }
 
-// === LOGIN (Backend - credentials never exposed to renderer) ===
+// === LOGIN (Backend - credentials encrypted with OS Credential Manager) ===
 const VALID_USERS = [
-  { user: "jcarrasco", pass: "Telecom123!", name: "Juan Carrasco" }
+  { user: "jcarrasco", name: "Juan Carrasco" }
 ];
 
+const CRED_FILE = path.join(os.homedir(), "Documents", "TNO_Vault", "credentials.enc");
+const REMEMBER_FILE = path.join(os.homedir(), "Documents", "TNO_Vault", "session.enc");
+
+function loadCredentials() {
+  try {
+    if (!fs.existsSync(CRED_FILE)) return {};
+    const encrypted = fs.readFileSync(CRED_FILE);
+    return JSON.parse(safeStorage.decryptString(encrypted));
+  } catch (e) {
+    console.error("Credential load error:", e);
+    return {};
+  }
+}
+
+function saveCredentials(creds) {
+  const dir = path.dirname(CRED_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(CRED_FILE, safeStorage.encryptString(JSON.stringify(creds)));
+}
+
+ipcMain.handle("check-user", async (event, username) => {
+  const match = VALID_USERS.find(u => u.user === username.trim().toLowerCase());
+  if (!match) return { exists: false };
+  const creds = loadCredentials();
+  const hasPassword = !!creds[match.user];
+  return { exists: true, name: match.name, hasPassword };
+});
+
+ipcMain.handle("setup-password", async (event, username, newPass) => {
+  const match = VALID_USERS.find(u => u.user === username.trim().toLowerCase());
+  if (!match) return { success: false, error: "User not found." };
+  const creds = loadCredentials();
+  creds[match.user] = newPass;
+  saveCredentials(creds);
+  return { success: true, name: match.name, username: match.user };
+});
+
 ipcMain.handle("login", async (event, user, pass) => {
-  const match = VALID_USERS.find(u => u.user === user.trim().toLowerCase() && u.pass === pass);
-  if (match) return { success: true, name: match.name };
+  const username = user.trim().toLowerCase();
+  const match = VALID_USERS.find(u => u.user === username);
+  if (!match) return { success: false };
+  const creds = loadCredentials();
+  if (creds[username] === pass) return { success: true, name: match.name, username: match.user };
   return { success: false };
+});
+
+ipcMain.handle("change-password", async (event, username, currentPass, newPass) => {
+  const creds = loadCredentials();
+  if (creds[username] !== currentPass) return { success: false, error: "Current password is incorrect." };
+  creds[username] = newPass;
+  saveCredentials(creds);
+  return { success: true };
+});
+
+ipcMain.handle("save-session", async (event, username, pass) => {
+  try {
+    const dir = path.dirname(REMEMBER_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(REMEMBER_FILE, safeStorage.encryptString(JSON.stringify({ username, pass })));
+    return { success: true };
+  } catch (e) { return { success: false }; }
+});
+
+ipcMain.handle("load-session", async () => {
+  try {
+    if (!fs.existsSync(REMEMBER_FILE)) return { exists: false };
+    const data = JSON.parse(safeStorage.decryptString(fs.readFileSync(REMEMBER_FILE)));
+    const match = VALID_USERS.find(u => u.user === data.username);
+    if (!match) return { exists: false };
+    const creds = loadCredentials();
+    if (creds[data.username] === data.pass) {
+      return { exists: true, name: match.name, username: match.user };
+    }
+    return { exists: false };
+  } catch (e) { return { exists: false }; }
+});
+
+ipcMain.handle("clear-session", async () => {
+  try { if (fs.existsSync(REMEMBER_FILE)) fs.unlinkSync(REMEMBER_FILE); } catch (e) {}
+  return { success: true };
 });
 
 // === LÓGICA DE GUARDADO (Backend) ===

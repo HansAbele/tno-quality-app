@@ -34,6 +34,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Failed to load denial codes:", err);
   }
 
+  // Set date range on check payment input (2018 to today)
+  const chkSentInput = document.getElementById("chk-sent");
+  chkSentInput.setAttribute("min", "2018-01-01");
+  chkSentInput.setAttribute("max", new Date().toISOString().split("T")[0]);
+
   // Personalize chat greeting with agent's first name
   const appContainer = document.getElementById("app-container");
   const observer = new MutationObserver(() => {
@@ -162,6 +167,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("nav-appearance").addEventListener("click", () => openSubview("settings-appearance-view"));
   document.getElementById("nav-quickref").addEventListener("click", () => openSubview("settings-quickref-view"));
   document.getElementById("nav-vault").addEventListener("click", () => { openSubview("settings-vault-view"); loadVault(); });
+  document.getElementById("nav-profile").addEventListener("click", () => {
+    const app = document.getElementById("app-container");
+    document.getElementById("profile-name").textContent = app.dataset.agentName || "—";
+    document.getElementById("profile-username").textContent = app.dataset.agentUser || "—";
+    openSubview("settings-profile-view");
+  });
   settingsBody.querySelectorAll(".settings-back-btn").forEach(btn => {
     btn.addEventListener("click", closeSubview);
   });
@@ -320,19 +331,61 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderVault();
   });
 
+  // Change Password
+  document.getElementById("profile-change-pass-btn").addEventListener("click", async () => {
+    const username = document.getElementById("app-container").dataset.agentUser;
+    const current = document.getElementById("profile-current-pass").value;
+    const newPass = document.getElementById("profile-new-pass").value;
+    const confirm = document.getElementById("profile-confirm-pass").value;
+    const msg = document.getElementById("profile-pass-msg");
+
+    if (!current || !newPass || !confirm) {
+      msg.style.color = "var(--danger)";
+      msg.textContent = "All fields are required.";
+      return;
+    }
+    if (newPass !== confirm) {
+      msg.style.color = "var(--danger)";
+      msg.textContent = "New passwords do not match.";
+      return;
+    }
+    if (newPass.length < 6) {
+      msg.style.color = "var(--danger)";
+      msg.textContent = "Password must be at least 6 characters.";
+      return;
+    }
+    const result = await window.electronAPI.changePassword(username, current, newPass);
+    if (result.success) {
+      msg.style.color = "var(--success)";
+      msg.textContent = "Password updated successfully.";
+      document.getElementById("profile-current-pass").value = "";
+      document.getElementById("profile-new-pass").value = "";
+      document.getElementById("profile-confirm-pass").value = "";
+    } else {
+      msg.style.color = "var(--danger)";
+      msg.textContent = result.error;
+    }
+  });
+
   // Logout
   document.getElementById("logout-btn").addEventListener("click", () => {
     settingsContainer.classList.remove("active");
     resetUI();
+    window.electronAPI.clearSession();
     const appContainer = document.getElementById("app-container");
     appContainer.style.display = "none";
     delete appContainer.dataset.agentName;
+    delete appContainer.dataset.agentUser;
     const greeting = document.getElementById("chat-greeting");
     if (greeting) greeting.textContent = "Hi! I'm your TNO Billing Copilot. Ask me any question related to the clinic protocols or patient scenarios!";
     const loginScreen = document.getElementById("login-screen");
     loginScreen.classList.remove("hidden");
+    // Restore login card state
+    document.getElementById("login-card").style.display = "block";
+    document.getElementById("setup-card").style.display = "none";
     document.getElementById("login-user").value = "";
     document.getElementById("login-pass").value = "";
+    document.getElementById("remember-me-check").checked = false;
     const loginBtn = document.getElementById("login-btn");
     loginBtn.innerHTML = '<span class="login-btn-text">Sign In</span><i class="ph ph-arrow-right login-btn-icon"></i>';
     loginBtn.classList.remove("loading");
@@ -557,6 +610,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 });
 
+// Global function called from collections error button
+function askCopilotCollections() {
+  const question = "The patient's balance was sent to collections and they believe it was sent by error. What are ALL the valid reasons for escalating a collections error to AR? Include reasons like: wrong address (paper bill never received), claim sent to wrong insurance, incorrect insurance info on file, timely filing expiration, and any other valid scenarios. Also remind me that I must verify with my Team Lead before escalating.";
+  if (window._openCopilotWithQuestion) {
+    window._openCopilotWithQuestion(question);
+  }
+}
+
 // Global function called from denial code button
 function askCopilotAboutDenial(code, desc) {
   const question = `The patient has denial code ${code} (${desc}). What should I do? Explain what this means, what caused it, and give me step-by-step instructions on how to handle this with the patient.`;
@@ -662,7 +723,8 @@ function updateScenario() {
     "insurance-submit-form", "injury-form", "check-payment-form",
     "claim-status-box", "deceased-form", "escalation-form",
     "refund-options", "lawfirm-form", "selfpay-calc-box",
-    "payment-calc-box", "escalation-validator-box", "balance-inquiry-box"
+    "payment-calc-box", "escalation-validator-box", "balance-inquiry-box",
+    "collections-form"
   ];
   forms.forEach(id => document.getElementById(id).style.display = "none");
 
@@ -688,7 +750,7 @@ function updateScenario() {
   if (scenario === "payment") {
     infoBox.style.display = "block";
     infoBox.classList.add("alert-danger");
-    infoBox.innerHTML = `<i class="ph ph-shield-warning" ${iconStyle}></i> <strong>REMINDER: PLEASE MASK THE CALL!</strong><br>Posting Timeframe: 7-10 Days.`;
+    infoBox.innerHTML = `<i class="ph ph-shield-warning" ${iconStyle}></i> <strong>REMINDER: PLEASE MASK THE CALL!</strong><br>Posting: 7-10 Business Days (Patient Pay, Royal Pay). Imagine Pay: no set timeframe.`;
     dynamicStepsDiv.innerHTML = '<label class="checklist-item"><input type="checkbox" class="step"> <i class="ph ph-lock-key"></i> Masked & Processed</label>';
   }
   else if (scenario === "claim_status") {
@@ -706,13 +768,23 @@ function updateScenario() {
   else if (scenario === "balance_inquiry") {
     document.getElementById("balance-inquiry-box").style.display = "block";
   }
+  else if (scenario === "collections") {
+    document.getElementById("collections-form").style.display = "block";
+    infoBox.style.display = "block";
+    infoBox.classList.add("alert-warning");
+    infoBox.innerHTML = `<i class="ph ph-archive-box" ${iconStyle}></i> <strong>CHECK CLIENT FACT SHEET</strong> for Collection Agency name & phone #.`;
+  }
   else if (scenario === "submit_claim") {
     document.getElementById("insurance-submit-form").style.display = "block";
   }
   else if (scenario === "check_payment") {
     document.getElementById("check-payment-form").style.display = "block";
     const days = checkPaymentTimeframe();
-    if (days !== "unknown") {
+    if (days === "invalid") {
+      infoBox.style.display = "block";
+      infoBox.className = "dynamic-info alert-danger";
+      infoBox.innerHTML = `<strong>INVALID DATE.</strong> Please enter a valid past date.`;
+    } else if (days !== "unknown") {
       infoBox.style.display = "block";
       if (days > 21) {
         infoBox.className = "dynamic-info alert-success";
@@ -901,9 +973,15 @@ function updateProgress(allSteps) {
 
 // --- UTILITY FUNCTIONS ---
 function checkPaymentTimeframe() {
-  const sentDateVal = document.getElementById("chk-sent").value;
+  const input = document.getElementById("chk-sent");
+  const sentDateVal = input.value;
   if (!sentDateVal) return "unknown";
-  const diff = new Date() - new Date(sentDateVal);
+  const sentDate = new Date(sentDateVal);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const minDate = new Date("2018-01-01");
+  if (isNaN(sentDate.getTime()) || sentDate > today || sentDate < minDate) return "invalid";
+  const diff = today - sentDate;
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 

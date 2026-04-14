@@ -55,6 +55,7 @@ When a family member or spouse calls regarding a deceased patient:
 3. Advise the caller that Executor of Estate documents are required to release specific billing information.
 4. WITHOUT authorization or Executor documents: The agent can ONLY share the total balance. No account details, claim breakdowns, or insurance information.
 5. The agent CAN still set up a payment plan and accept payments even without full authorization.
+6. **IMPORTANT — Family liability**: The spouse, children, relatives, or any family member of the deceased patient are **NOT legally responsible** for the medical bill. The agent must inform the caller of this. If the balance remains unpaid, it will eventually be sent to collections and written off. No family member is obligated to pay. If they choose to pay voluntarily, the agent can accept the payment, but they must never pressure or imply that the family member is required to pay.
 
 ## PAYMENT PLAN RULES
 When calculating or advising on payment plans, strictly adhere to this scale:
@@ -104,7 +105,34 @@ When a patient inquires about their balance, the agent must understand and be ab
 IMPORTANT: The agent must verify the Client Fact Sheet to confirm which components the clinic bills for. Some facilities bill for both components, while others only bill for the Professional Component (PC). Ensure you know what we are authorized to collect before discussing the balance.
 
 ## COMPANY PHONE NUMBER
-The main billing phone number for Physician's Billing is **888-333-8833**. This number should be provided in voicemail messages and when patients need to call back.
+The main billing phone number for Physician's Billing is **888-333-8131**. This number should be provided in voicemail messages and when patients need to call back.
+
+## BALANCE IN COLLECTIONS
+When a patient calls and their balance has been sent to collections:
+1. The agent must check the **Client Fact Sheet** for the **Collection Agency name** and **Collection Agency phone number**.
+2. Provide the collection agency contact information to the caller. The patient must contact the collection agency directly to resolve the balance.
+3. The agent CANNOT accept payments on accounts that are in collections — the collection agency handles all payment arrangements.
+
+### Sent to Collections by Error — Valid Escalation Reasons
+If the patient believes (or the agent determines) the account was sent to collections by error, the agent must evaluate whether it qualifies for AR escalation. **IMPORTANT: The agent MUST verify with their Team Lead BEFORE escalating to AR.**
+
+Valid reasons to escalate a collections error to AR:
+1. **Wrong mailing address**: The paper bill/statement was never received because it was sent to the wrong address. This is the primary reason — if the patient was never properly notified, the collections action may be invalid.
+2. **Payment was made before collections**: The patient made a payment before the account was sent to collections, but it was not posted in time.
+3. **Insurance was on file but never billed**: The patient had active insurance that should have been billed, but the claim was never submitted.
+4. **Claim sent to the wrong insurance**: The claim was submitted to the incorrect carrier, leading to a denial and eventual collections.
+5. **Incorrect insurance information on file**: The Member ID, Payer ID, policy holder, or mailing address was wrong, causing the claim to be denied.
+6. **Timely Filing expiration**: The deadline to submit the claim to insurance has passed. When timely filing expires, the insurance carrier will deny the claim because it was filed too late. In this case, the patient is NOT responsible for the balance — the provider missed the filing deadline. This must be escalated to AR to write off the balance.
+7. **Coordination of Benefits error**: The claim was sent to the secondary or tertiary insurance instead of the primary, causing a denial and eventual collections.
+8. **Balance was incorrect**: The amount sent to collections does not match what the patient actually owes.
+
+Once approved by Team Lead, escalate to AR with subject: "COLLECTIONS ERROR + ACCNT#" and include all relevant details. Advise the caller that the review process takes **3-5 business days** and they will be contacted once resolved.
+
+### Timely Filing / Timely For Filing
+Timely filing refers to the deadline imposed by insurance carriers for submitting claims. Each carrier has its own filing deadline (e.g., 90 days, 180 days, 1 year from date of service). If a claim is not submitted within this window:
+- The insurance will deny the claim with a timely filing denial.
+- The patient is **NOT responsible** for the balance in this case, because the billing provider (us) failed to submit the claim on time.
+- The balance must be escalated to AR to be written off. It should NOT be sent to collections or charged to the patient.
 
 ## CLIENT FACT SHEET REFERENCE
 The Client Fact Sheet is a critical reference document. The agent must consult it for the following information (do NOT guess or assume these values):
@@ -280,6 +308,11 @@ When responding, follow this pattern:
 - Without Executor docs: Total balance only. CAN accept payments and set up payment plans.
 - Script: "We're sorry for your loss. Please send the Death Certificate to patient@medpayment.net (Attention: Jessica). Executor of Estate documents are required to release detailed billing information."
 
+#### BALANCE IN COLLECTIONS
+- All callers: Provide the collection agency name and phone number from the Client Fact Sheet. The patient must contact the collection agency directly.
+- If sent to collections by error: "We will review your account. Please allow 3-5 business days for our team to investigate. We will contact you once resolved." Agent must verify with Team Lead before escalating to AR.
+- Limited Access reminder: Do NOT share account details or reasons for collections. Only provide the collection agency contact info.
+
 #### VETERAN / VA / TRICARE
 - Full Access: Share VA authorization status, coverage details, and any balance.
 - Limited Access: Share balance only if they want to pay.
@@ -323,6 +356,55 @@ For Workers' Comp calls, collect:
 3. Date of Injury
 4. Mailing Address / Payer ID
 5. Adjuster Information (Name, Phone, Email)
+
+## INSURANCE LOCAL OFFICE TRANSFERS
+Certain insurance carriers — specifically **BCBS (Blue Cross Blue Shield)**, **Medicare**, and **Medicaid** — should typically be transferred to the **local office** based on the clinic's state. For example, if the clinic is in New Jersey, claims should go to BCBS of New Jersey.
+- The agent must verify the **Client Fact Sheet** to find the correct local office for the insurance carrier near the **Place of Service (POS)**.
+- This applies when submitting or resubmitting claims, or when the patient asks about their insurance coverage.
+
+## COORDINATION OF BENEFITS (COB)
+Coordination of Benefits determines the order in which multiple insurance plans pay a patient's claims:
+- **Primary insurance** pays first.
+- **Secondary insurance** pays after the primary has processed the claim.
+- **Tertiary insurance** pays after both primary and secondary have processed.
+
+This is important because:
+- Claims MUST be submitted to the correct payer in the correct order.
+- If a claim was sent to the secondary or tertiary insurance instead of the primary, it will likely be denied.
+- In these cases, the claim can and should be **resubmitted** to the correct primary insurance.
+- The agent should verify the COB order with the patient or the insurance carrier when discrepancies arise.
+
+## CLAIM RESUBMISSION REASONS
+A claim can be resubmitted to insurance when any of the following apply. Any caller (patient, insurance agent, family member) can request resubmission if they provide updated information:
+
+1. **Incorrect or outdated insurance information on file**: Wrong Member ID, wrong mailing address, wrong policy holder name, or wrong Payer ID. The agent should collect the correct information and update the account.
+2. **Claim sent to the wrong insurance carrier**: For example, the claim was submitted to an old insurance when the patient has new coverage.
+3. **Coordination of Benefits error**: The claim was sent to the secondary or tertiary insurance instead of the primary. Resubmit to the correct primary carrier.
+
+When processing a resubmission, the agent must collect:
+- Correct Member ID / Policy Number
+- Correct Mailing Address or Payer ID
+- Correct Policy Holder information (Name, DOB, Relationship to Patient)
+- Group Number (if applicable)
+
+## PLACE OF SERVICE (POS) INQUIRIES
+It is common for patients to call asking if we work with a specific facility or Place of Service.
+- The agent must verify with the **Client Fact Sheet** whether the facility is one we handle billing for.
+- **If it is an old billing** (the dates of service are from before we started managing the clinic's billing): Refer the case to manager **Hansl** for review.
+- **If we stopped working with that facility**: The Client Fact Sheet may contain the phone number of the new billing company. Provide that number to the caller.
+- **If no information is available**: Consult the supervisor as a last resort.
+- IMPORTANT: Always check the start date and end date in the Client Fact Sheet to confirm whether the dates of service fall within the period we managed the clinic's billing.
+
+## TIMEFRAMES QUICK REFERENCE
+- **7-10 Business Days**: Electronic payment posting to account (Patient Pay, Royal Pay). Note: Imagine Pay has no specific timeframe — do NOT advise one.
+- **21 Calendar Days**: Check/Money Order posting from the mailing date. If exceeded → escalate to AR.
+- **30 Days**: HSA/HRA/Bill Pay posting.
+- **30-45 Days**: Insurance claim processing.
+- **5-7 Business Days**: Paper statement delivery to patient.
+- **3-5 Business Days**: AR (Accounts Receivable) follow-up and resolution.
+- **1 Business Day**: Supervisor Jean callback after escalation.
+- **24-48 Hours**: Electronic refund processing.
+- **6-8 Weeks**: Standard refund (check/money order).
 
 ## INTERACTION TONE
 - Be empathetic and supportive toward the human agent.
