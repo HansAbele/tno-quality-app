@@ -28,6 +28,7 @@
   const setupEye2 = document.getElementById("setup-eye-2");
 
   let pendingSetupUser = "";
+  let pendingSetupDefault = "";
 
   // Auto-login from saved session
   (async function() {
@@ -92,6 +93,7 @@
     setupCard.style.display = "none";
     loginCard.style.display = "block";
     pendingSetupUser = "";
+    pendingSetupDefault = "";
     clearLoginErrors();
     loginPass.value = "";
     loginUser.focus();
@@ -130,13 +132,17 @@
       loginUser.focus();
       return;
     }
+    if (!pass) {
+      loginPassWrap.classList.add("error");
+      loginError.textContent = "Please enter your password.";
+      loginPass.focus();
+      return;
+    }
 
     setLoginLoading(true);
 
     try {
-      // First check if user exists and has a password
       const check = await window.electronAPI.checkUser(user);
-
       if (!check.exists) {
         setLoginLoading(false);
         loginUserWrap.classList.add("error");
@@ -144,25 +150,13 @@
         return;
       }
 
-      // First-time setup: no password configured yet
-      if (!check.hasPassword) {
-        setLoginLoading(false);
-        showSetupCard(user, check.name);
-        return;
-      }
-
-      // Normal login
-      if (!pass) {
-        setLoginLoading(false);
-        loginPassWrap.classList.add("error");
-        loginError.textContent = "Please enter your password.";
-        loginPass.focus();
-        return;
-      }
-
       const result = await window.electronAPI.login(user, pass);
       if (result.success) {
         loginSuccess(result.name, result.username, pass);
+      } else if (result.requiresSetup) {
+        setLoginLoading(false);
+        pendingSetupDefault = pass;
+        showSetupCard(result.username, result.name);
       } else {
         setLoginLoading(false);
         loginPassWrap.classList.add("error");
@@ -201,8 +195,9 @@
     setSetupLoading(true);
 
     try {
-      const result = await window.electronAPI.setupPassword(pendingSetupUser, pass);
+      const result = await window.electronAPI.setupPassword(pendingSetupUser, pendingSetupDefault, pass);
       if (result.success) {
+        pendingSetupDefault = "";
         rememberCheck.checked = true;
         loginSuccess(result.name, result.username, pass);
       } else {

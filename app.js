@@ -642,6 +642,7 @@ function escHtml(str) {
 }
 
 // --- CALL NOTES ---
+let _premadeCache = null;  // module-scope cache (lives for the session)
 function initNotes() {
   const notesContainer = document.getElementById("notes-container");
   const notesBody = document.getElementById("notes-body");
@@ -679,10 +680,15 @@ function initNotes() {
   }
 
   async function loadNotes() {
-    try {
-      const res = await fetch("./notes_data.json");
-      premade = await res.json();
-    } catch (err) { console.error("Premade notes load failed:", err); }
+    if (_premadeCache) {
+      premade = _premadeCache;
+    } else {
+      try {
+        const res = await fetch("./notes_data.json");
+        _premadeCache = await res.json();
+        premade = _premadeCache;
+      } catch (err) { console.error("Premade notes load failed:", err); }
+    }
     try {
       const result = await window.electronAPI.notesLoadCustom();
       if (result && result.success) customData = result.data;

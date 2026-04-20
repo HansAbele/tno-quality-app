@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   checkUser: (username) => ipcRenderer.invoke("check-user", username),
-  setupPassword: (username, pass) => ipcRenderer.invoke("setup-password", username, pass),
+  setupPassword: (username, defaultPass, newPass) => ipcRenderer.invoke("setup-password", username, defaultPass, newPass),
   login: (user, pass) => ipcRenderer.invoke("login", user, pass),
   saveCallData: (data) => ipcRenderer.invoke("save-call-data", data),
   getHistory: (opts) => ipcRenderer.invoke("get-history", opts),

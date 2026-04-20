@@ -53,8 +53,32 @@ function createWindow() {
 }
 
 // === LOGIN (Backend - credentials encrypted with OS Credential Manager) ===
+// Default password for first-time enrollment. Can be rotated via TNO_DEFAULT_PASSWORD env var.
+const DEFAULT_PASSWORD = process.env.TNO_DEFAULT_PASSWORD || "TNO2026!";
+
 const VALID_USERS = [
-  { user: "jcarrasco", name: "Juan Carrasco" }
+  { user: "jcarrasco", name: "Juan Carrasco" },
+  { user: "aeugene", name: "Antonia Eugene" },
+  { user: "aperalta", name: "Audrey Luz Peralta Gonzalez" },
+  { user: "bgomez", name: "Bryan de Jesus Gomez Martinez" },
+  { user: "cgarcia", name: "Carolina Rosali Garcia Nunez" },
+  { user: "ccabral", name: "Clary Sol Cabral Núñez" },
+  { user: "fliriano", name: "Felix Oscar Liriano Martinez" },
+  { user: "jjean", name: "Jacques Jean Elie" },
+  { user: "jlamy", name: "Jacquise Lamy" },
+  { user: "jline", name: "Jean Line" },
+  { user: "jrony", name: "Jean Rony Alysiee" },
+  { user: "jcapellan", name: "Jeremías Capellán Ramos" },
+  { user: "jsantos", name: "Jose Andres Santos Castillo" },
+  { user: "jchavez", name: "Julio Armando Yoy Chavez" },
+  { user: "kwhaley", name: "Kayla Whaley" },
+  { user: "mdelance", name: "Miguel Alberto Delance Mendoza" },
+  { user: "ocruz", name: "Osiris Anael Cruz Ceballo" },
+  { user: "ojacques", name: "Osse Jean Jacques" },
+  { user: "sbaptiste", name: "Sabline Jean Baptiste" },
+  { user: "sromelus", name: "Stanley Antoine Romelus" },
+  { user: "sfrederic", name: "Stherlyne Ketty Nisha Frederic" },
+  { user: "uevariste", name: "Ulrick Evariste" }
 ];
 
 const CRED_FILE = path.join(os.homedir(), "Documents", "TNO_Vault", "credentials.enc");
@@ -80,15 +104,19 @@ function saveCredentials(creds) {
 ipcMain.handle("check-user", async (event, username) => {
   const match = VALID_USERS.find(u => u.user === username.trim().toLowerCase());
   if (!match) return { exists: false };
-  const creds = loadCredentials();
-  const hasPassword = !!creds[match.user];
-  return { exists: true, name: match.name, hasPassword };
+  return { exists: true, name: match.name };
 });
 
-ipcMain.handle("setup-password", async (event, username, newPass) => {
+ipcMain.handle("setup-password", async (event, username, defaultPass, newPass) => {
   const match = VALID_USERS.find(u => u.user === username.trim().toLowerCase());
   if (!match) return { success: false, error: "User not found." };
   const creds = loadCredentials();
+  if (creds[match.user]) {
+    return { success: false, error: "Account already set up. Please sign in." };
+  }
+  if (defaultPass !== DEFAULT_PASSWORD) {
+    return { success: false, error: "Invalid default password." };
+  }
   creds[match.user] = newPass;
   saveCredentials(creds);
   return { success: true, name: match.name, username: match.user };
@@ -99,7 +127,17 @@ ipcMain.handle("login", async (event, user, pass) => {
   const match = VALID_USERS.find(u => u.user === username);
   if (!match) return { success: false };
   const creds = loadCredentials();
-  if (creds[username] === pass) return { success: true, name: match.name, username: match.user };
+
+  // Returning user with stored password
+  if (creds[username]) {
+    if (creds[username] === pass) return { success: true, name: match.name, username: match.user };
+    return { success: false };
+  }
+
+  // First-time user: require default password to unlock setup
+  if (pass === DEFAULT_PASSWORD) {
+    return { success: false, requiresSetup: true, name: match.name, username: match.user };
+  }
   return { success: false };
 });
 
@@ -200,34 +238,35 @@ ipcMain.handle("vault-save", async (event, entries) => {
   }
 });
 
-// === OBTENER HISTORIAL CON PAGINACIÓN (Backend) ===
+// === OBTENER HISTORIAL CON PAGINACIÓN (Backend, async I/O) ===
 ipcMain.handle("get-history", async (event, { page = 1, limit = 50 } = {}) => {
   try {
     const documentsPath = path.join(os.homedir(), "Documents", "TNO_Logs");
 
-    if (!fs.existsSync(documentsPath)) return { calls: [], total: 0, page, limit };
+    try {
+      await fs.promises.access(documentsPath);
+    } catch {
+      return { calls: [], total: 0, page, limit };
+    }
 
-    const files = fs.readdirSync(documentsPath).filter(file => file.endsWith('.json'));
+    const files = (await fs.promises.readdir(documentsPath)).filter(f => f.endsWith('.json'));
     files.sort().reverse();
 
     let allCalls = [];
     for (const file of files) {
-      const filePath = path.join(documentsPath, file);
       try {
-        const json = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        const raw = await fs.promises.readFile(path.join(documentsPath, file), 'utf-8');
+        const json = JSON.parse(raw);
         if (Array.isArray(json)) allCalls = allCalls.concat(json);
       } catch (err) {
         console.error("Error leyendo archivo:", file, err);
       }
-      // Stop reading files once we have enough records
       if (allCalls.length >= page * limit) break;
     }
 
     const total = allCalls.length;
     const start = (page - 1) * limit;
-    const paginated = allCalls.slice(start, start + limit);
-
-    return { calls: paginated, total, page, limit };
+    return { calls: allCalls.slice(start, start + limit), total, page, limit };
   } catch (error) {
     console.error("Error obteniendo historial:", error);
     return { calls: [], total: 0, page, limit };
@@ -367,10 +406,10 @@ ipcMain.handle("notes-save-custom", async (event, data) => {
   }
 });
 
-// Fast typing via Win32 SendInput with KEYEVENTF_UNICODE — orders of magnitude faster
-// than SendKeys because all keystrokes are dispatched in a single syscall and no virtual
-// key translation is needed (Unicode chars are injected directly).
-const TYPE_SCRIPT = `$src = @"
+// Persistent PowerShell typer — spawned once at app start, keeps C# SendInput type
+// loaded, and accepts JSON line-protocol requests over stdin. This eliminates the
+// ~300-500ms cold-start + Add-Type compilation cost that happened on every keypress.
+const PERSISTENT_TYPER_SCRIPT = `$src = @"
 using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
@@ -408,28 +447,120 @@ public static class KS {
 }
 "@
 Add-Type -TypeDefinition $src -Language CSharp
-Start-Sleep -Milliseconds 40
-$t = [Console]::In.ReadToEnd()
-[KS]::Type($t)`;
+$stdin = [Console]::OpenStandardInput()
+$reader = New-Object System.IO.StreamReader($stdin, [System.Text.Encoding]::UTF8)
+[Console]::Out.WriteLine('{"ready":true}')
+[Console]::Out.Flush()
+while ($true) {
+  $line = $reader.ReadLine()
+  if ($null -eq $line) { break }
+  if ([string]::IsNullOrWhiteSpace($line)) { continue }
+  try {
+    $req = $line | ConvertFrom-Json
+    if ($req.text -ne $null) {
+      Start-Sleep -Milliseconds 30
+      [KS]::Type([string]$req.text)
+      [Console]::Out.WriteLine('{"ok":true}')
+    } else {
+      [Console]::Out.WriteLine('{"ok":false,"error":"missing text"}')
+    }
+  } catch {
+    [Console]::Out.WriteLine('{"ok":false,"error":"Type failed"}')
+  }
+  [Console]::Out.Flush()
+}`;
 
-function typeViaPowerShell(text) {
-  return new Promise((resolve, reject) => {
-    const encoded = Buffer.from(TYPE_SCRIPT, "utf16le").toString("base64");
-    const ps = spawn("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-EncodedCommand", encoded], {
+let psTyper = null;
+let psTyperReady = false;
+let psTyperQueue = [];  // pending { resolve, reject }
+let psStdoutBuf = "";
+
+function startPsTyper() {
+  if (psTyper) return;
+  try {
+    const encoded = Buffer.from(PERSISTENT_TYPER_SCRIPT, "utf16le").toString("base64");
+    psTyper = spawn("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-EncodedCommand", encoded], {
       stdio: ["pipe", "pipe", "pipe"],
       windowsHide: true
     });
-    let stderr = "";
-    ps.stderr.on("data", d => { stderr += d.toString(); });
-    ps.on("error", reject);
-    ps.on("close", (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(stderr || `PowerShell exit code ${code}`));
+    psTyper.stdout.setEncoding("utf8");
+    psTyper.stdout.on("data", (chunk) => {
+      psStdoutBuf += chunk;
+      let idx;
+      while ((idx = psStdoutBuf.indexOf("\n")) >= 0) {
+        const line = psStdoutBuf.substring(0, idx).trim();
+        psStdoutBuf = psStdoutBuf.substring(idx + 1);
+        if (!line) continue;
+        if (line.indexOf('"ready"') >= 0) { psTyperReady = true; continue; }
+        const cb = psTyperQueue.shift();
+        if (!cb) continue;
+        try {
+          const res = JSON.parse(line);
+          if (res.ok) cb.resolve();
+          else cb.reject(new Error(res.error || "Type failed"));
+        } catch (e) {
+          cb.reject(new Error("Bad typer response: " + line));
+        }
+      }
     });
-    try {
-      ps.stdin.write(text);
-      ps.stdin.end();
-    } catch (err) { reject(err); }
+    psTyper.stderr.on("data", (d) => console.error("PS typer stderr:", d.toString()));
+    psTyper.on("close", (code) => {
+      console.warn("PS typer exited with code", code);
+      psTyper = null;
+      psTyperReady = false;
+      while (psTyperQueue.length) {
+        const cb = psTyperQueue.shift();
+        cb.reject(new Error("PowerShell typer closed"));
+      }
+      psStdoutBuf = "";
+    });
+    psTyper.on("error", (err) => {
+      console.error("PS typer error:", err);
+      psTyper = null;
+      psTyperReady = false;
+    });
+  } catch (err) {
+    console.error("Failed to start PS typer:", err);
+    psTyper = null;
+    psTyperReady = false;
+  }
+}
+
+function stopPsTyper() {
+  if (!psTyper) return;
+  try { psTyper.stdin.end(); } catch (e) {}
+  try { psTyper.kill(); } catch (e) {}
+  psTyper = null;
+  psTyperReady = false;
+  psStdoutBuf = "";
+}
+
+function typeViaPowerShell(text) {
+  return new Promise((resolve, reject) => {
+    if (!psTyper) startPsTyper();
+    if (!psTyper) return reject(new Error("Typer unavailable"));
+    const enqueue = () => {
+      psTyperQueue.push({ resolve, reject });
+      try {
+        psTyper.stdin.write(JSON.stringify({ text }) + "\n");
+      } catch (err) {
+        psTyperQueue.pop();
+        reject(err);
+      }
+    };
+    if (psTyperReady) {
+      enqueue();
+    } else {
+      // Wait up to 3s for typer to become ready
+      const deadline = Date.now() + 3000;
+      const poll = () => {
+        if (psTyperReady) return enqueue();
+        if (!psTyper) return reject(new Error("Typer died before ready"));
+        if (Date.now() > deadline) return reject(new Error("Typer init timeout"));
+        setTimeout(poll, 30);
+      };
+      poll();
+    }
   });
 }
 
@@ -493,9 +624,26 @@ ipcMain.handle("notes-disarm", async () => {
   return { success: true };
 });
 
+// Periodic memory log — cheap leak detector. Runs every 10 min, appends rss/heap to a log.
+let memoryLogInterval = null;
+function startMemoryLog() {
+  if (memoryLogInterval) return;
+  memoryLogInterval = setInterval(() => {
+    try {
+      const mem = process.memoryUsage();
+      const line = `${new Date().toISOString()} rss=${Math.round(mem.rss/1048576)}MB heap=${Math.round(mem.heapUsed/1048576)}MB ext=${Math.round(mem.external/1048576)}MB\n`;
+      const dir = path.join(os.homedir(), "Documents", "TNO_Logs");
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.appendFileSync(path.join(dir, "memory.log"), line);
+    } catch (e) { /* swallow */ }
+  }, 10 * 60 * 1000);
+}
+
 // === CICLO DE VIDA DE LA APP ===
 app.whenReady().then(() => {
   createWindow();
+  startPsTyper();       // keep PS loaded so first type is fast
+  startMemoryLog();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -506,6 +654,8 @@ app.whenReady().then(() => {
 
 app.on("will-quit", () => {
   globalShortcut.unregisterAll();
+  stopPsTyper();
+  if (memoryLogInterval) { clearInterval(memoryLogInterval); memoryLogInterval = null; }
 });
 
 app.on("window-all-closed", () => {
