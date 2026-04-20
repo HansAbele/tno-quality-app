@@ -13,5 +13,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   changePassword: (username, currentPass, newPass) => ipcRenderer.invoke("change-password", username, currentPass, newPass),
   saveSession: (username, pass) => ipcRenderer.invoke("save-session", username, pass),
   loadSession: () => ipcRenderer.invoke("load-session"),
-  clearSession: () => ipcRenderer.invoke("clear-session")
+  clearSession: () => ipcRenderer.invoke("clear-session"),
+  notesLoadCustom: () => ipcRenderer.invoke("notes-load-custom"),
+  notesSaveCustom: (data) => ipcRenderer.invoke("notes-save-custom", data),
+  notesArm: (text, shortcut) => ipcRenderer.invoke("notes-arm", { text, shortcut }),
+  notesDisarm: () => ipcRenderer.invoke("notes-disarm"),
+  onNoteTyped: (cb) => ipcRenderer.on("note-typed", cb),
+  onNoteTypeSkipped: (cb) => ipcRenderer.on("note-type-skipped", cb),
+  onNoteTypeError: (cb) => ipcRenderer.on("note-type-error", cb)
 });

@@ -610,7 +610,7 @@
         <div class="settings-body">
           <!-- Main View -->
           <div class="settings-view" id="settings-main-view">
-            <div class="settings-section">
+            <div class="settings-section settings-nav-group">
               <div class="settings-nav-row" id="nav-appearance">
                 <div class="settings-row-label"><i class="ph ph-paint-brush"></i> Appearance</div>
                 <i class="ph ph-caret-right settings-nav-arrow"></i>
@@ -623,17 +623,15 @@
                 <div class="settings-row-label"><i class="ph ph-lock-key"></i> Password Vault</div>
                 <i class="ph ph-caret-right settings-nav-arrow"></i>
               </div>
-            </div>
-            <div class="settings-section">
-              <div class="settings-nav-row" id="nav-profile">
-                <div class="settings-row-label"><i class="ph ph-user-circle"></i> Agent Profile</div>
+              <div class="settings-nav-row" id="nav-notes">
+                <div class="settings-row-label"><i class="ph ph-note-pencil"></i> Call Notes</div>
                 <i class="ph ph-caret-right settings-nav-arrow"></i>
               </div>
             </div>
-            <div class="settings-section">
-              <div class="settings-section-title">Coming Soon</div>
-              <div class="settings-row" style="opacity: 0.5;">
-                <div class="settings-row-label"><i class="ph ph-note-pencil"></i> Call Notes</div>
+            <div class="settings-section settings-nav-group">
+              <div class="settings-nav-row" id="nav-profile">
+                <div class="settings-row-label"><i class="ph ph-user-circle"></i> Agent Profile</div>
+                <i class="ph ph-caret-right settings-nav-arrow"></i>
               </div>
             </div>
           </div>
@@ -779,7 +777,62 @@
           <div style="margin-top: 10px;">TNO Quality Companion v1.0.0</div>
         </div>
       </div>
+
+      <!-- Call Notes (full-screen overlay) -->
+      <div class="notes-container" id="notes-container">
+        <div class="notes-header">
+          <button class="notes-back-btn" id="notes-back-btn" title="Back">
+            <i class="ph ph-caret-left"></i>
+          </button>
+          <div class="notes-header-title"><i class="ph ph-note-pencil"></i> Call Notes</div>
+          <button class="notes-new-btn" id="notes-new-btn" title="New Note">
+            <i class="ph ph-plus"></i>
+          </button>
+        </div>
+        <div class="notes-search-bar">
+          <i class="ph ph-magnifying-glass"></i>
+          <input type="text" id="notes-search" placeholder="Search by scenario or name..." autocomplete="off" />
+          <button class="notes-search-clear" id="notes-search-clear" title="Clear"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="notes-body" id="notes-body"></div>
+        <div class="notes-arm-banner" id="notes-arm-banner">
+          <div class="arm-banner-content">
+            <div class="arm-banner-icon"><i class="ph ph-target"></i></div>
+            <div class="arm-banner-text">
+              <div class="arm-banner-title" id="arm-note-title">Note armed</div>
+              <div class="arm-banner-sub">Click inside the remote, then press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd></div>
+            </div>
+          </div>
+          <button class="arm-disarm-btn" id="arm-disarm-btn" title="Disarm">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+
+        <!-- Note Editor Modal -->
+        <div class="note-editor-backdrop" id="note-editor-backdrop">
+          <div class="note-editor">
+            <div class="note-editor-header">
+              <div class="note-editor-title" id="note-editor-title">New Note</div>
+              <button class="note-editor-close" id="note-editor-close"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="note-editor-body">
+              <label class="note-editor-label">Title</label>
+              <input type="text" id="note-editor-title-input" placeholder="e.g. Payment Plan - Offered" maxlength="80" />
+              <label class="note-editor-label">Content</label>
+              <textarea id="note-editor-content" rows="8" placeholder="Note text..."></textarea>
+              <div class="note-editor-hint">This will be typed exactly into the remote when triggered.</div>
+            </div>
+            <div class="note-editor-footer">
+              <button class="note-cancel-btn" id="note-editor-cancel">Cancel</button>
+              <button class="note-save-btn" id="note-editor-save"><i class="ph ph-floppy-disk"></i> Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Global toast -->
+    <div class="toast-notification" id="toast-notification"></div>
 
     <script src="login.js"></script>
     <script src="app.js"></script>

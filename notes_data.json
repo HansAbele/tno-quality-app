@@ -1,0 +1,341 @@
+{
+  "categories": [
+    {
+      "id": "ins-updates",
+      "name": "Insurance Updates",
+      "icon": "ph-shield-check",
+      "notes": [
+        {
+          "id": "ins-pri-cr",
+          "title": "Primary Insurance - C/R Charges",
+          "content": "PT CLD, RECEIVED OUR STATEMENT, PROV INS INFO FOR **. UPD INS INFO ON THE ACCNT AND C/R CHARGES TO INS TO PROCESS. ADV 30-45 DAYS FOR PROCESSING. AOF AND PH# ARE CORRECT."
+        },
+        {
+          "id": "ins-pri-et",
+          "title": "Primary Insurance - E/T Charges",
+          "content": "PT CLD, RECEIVED OUR STATEMENT, PROV INS INFO FOR **. UPD INS INFO ON THE ACCNT AND E/T CHARGES TO INS TO PROCESS. ADV 30-45 DAYS FOR PROCESSING. AOF AND PH# ARE CORRECT."
+        },
+        {
+          "id": "ins-sec",
+          "title": "Secondary Insurance",
+          "content": "PT CLD, RECEIVED OUR STATEMENT, PROV SEC INS INFO FOR **. E/T CHARGES TO SEC INS TO PROCESS. ADV 30-45 DAYS FOR PROCESSING. AOF AND PH# ARE CORRECT."
+        },
+        {
+          "id": "ins-ter",
+          "title": "Tertiary Insurance",
+          "content": "PT CLD, RECEIVED OUR STATEMENT, PROV TER INS INFO FOR **. E/T CHARGES TO SEC INS TO PROCESS. ADV 30-45 DAYS FOR PROCESSING. AOF AND PH# ARE CORRECT."
+        },
+        {
+          "id": "ins-mva",
+          "title": "MVA Insurance",
+          "content": "PT CLD, RECEIVED OUR STATEMENT, ADV THIS IS MVA RELATED AND PROV MVA INS INFO FOR **. C/R CHARGES TO MVA INS TO PROCESS. MVA ADJ IS. ADV 30-45 DAYS FOR PROCESSING. AOF AND PH# ARE CORRECT."
+        },
+        {
+          "id": "ins-wc",
+          "title": "Workers' Comp Insurance",
+          "content": "PT CLD, RECEIVED OUR STATEMENT, ADV THIS IS WC RELATED AND PROV WC INS INFO FOR **. C/R CHARGES TO WC INS TO PROCESS. WC ADJ IS. ADV 30-45 DAYS FOR PROCESSING. AOF AND PH# ARE CORRECT."
+        }
+      ]
+    },
+    {
+      "id": "patient-payments",
+      "name": "Patient Payments",
+      "icon": "ph-credit-card",
+      "notes": [
+        {
+          "id": "pay-satisfy",
+          "title": "Payment to Satisfy Balance",
+          "content": "PT CLD TO MAKE PMNT TO SATISFY ACCNT BALANCE OF $**. EMAILED PMNT RECEIPT. AOF AND PH# ARE CORRECT."
+        },
+        {
+          "id": "pay-verify-zero",
+          "title": "Verify Balance - Zero",
+          "content": "PT CLD, WANTED TO VERIFY IF THERE WAS AN OUTSTANDING BALANCE IN THE ACCOUNT. CONFIRMED ACCNT BALANCE IS 0. AOF AND PH# ARE CORRECT."
+        },
+        {
+          "id": "pay-tos-component",
+          "title": "Bill Inquiry After TOS Payment",
+          "content": "PT CLD, WANTED TO KNOW WHAT THE BILL WAS FOR SINCE PAID THE POS. EXPLAINED THIS IS THE PORTION FOR THE READING OF THE IMAGE AND IT IS SEPARATE FROM THE POS. PT MADE PMNT FOR BALANCE $ , EMAILED RECEIPT. AOF AND PH# ARE CORRECT."
+        }
+      ]
+    },
+    {
+      "id": "check-payments",
+      "name": "Check Payments",
+      "icon": "ph-money",
+      "notes": [
+        {
+          "id": "chk-full",
+          "title": "Check Payment - Full Instructions",
+          "content": "PT CLD, RECEIVED OUR BILL AND WANTED TO KNOW IF HE/SHE/THEY CAN SEND US A CHECK PMNT. CONFIRMED WE DO ACCEPT CHECKS. ADV PT TO PROV ACCNT# AS REFERENCE ON THE CHECK AND TO MAKE CHECK PAYABLE TO (PRACTICE NAME). ALSO, ADV PT CHECKS TAKE UP TO 21 DAYS TO POST FROM THE MAIL IN DATE."
+        },
+        {
+          "id": "chk-short",
+          "title": "Check Payment - Short Version",
+          "content": "PT CLD, STATED THAT RECEIVED THE STATEMENT AND WANTED TO KNOW IF HE/SHE/THEY IS ABLE TO SEND A CHECK PMNT. ADV, WE ACCEPT CHECKS AND TO PLEASE MAKE IT PAYABLE TO (PRACTICE NAME) AND SEND IT TO THE ADDRESS ON THE STATEMENT."
+        },
+        {
+          "id": "chk-missing-return",
+          "title": "Check Payment - Missing Return Portion",
+          "content": "PT CLD, RECEIVED OUR BILL AND ADV HE/SHE/ WAS UNABLE TO FIND THE RETURN PORTION OF THE STATEMENT TO SEND US A CHECK PMNT. ADV PT TO PROV ACCNT# AS REFERENCE ON THE CHECK, TO MAKE CHECK PAYABLE TO (PRACTICE NAME) AND VERIFIED OUR BILLING ADDRESS."
+        }
+      ]
+    },
+    {
+      "id": "notices-callbacks",
+      "name": "Notices & Callbacks",
+      "icon": "ph-bell",
+      "notes": [
+        {
+          "id": "opt-out",
+          "title": "Opt Out of Electronic Notices",
+          "content": "PT CLD, RECEIVED OUR (TEXT/EMAIL) AND REQUESTED A PAPER STATEMENT INSTEAD. REMOVED PT FROM PAPERLESS, AOF AND PH# ARE CORRECT. REQUESTED PAPER STATEMENT TO BE MAILED TO PT, ADV 7-10 DAYS TO RCV IT."
+        },
+        {
+          "id": "callback-no-answer",
+          "title": "Scheduled Callback - No Answer",
+          "content": "RESPONDED TO SCHEDULED CALL BACK, FOUND ACCNT USING PH# IN PTPAY HOWEVER PT DID NOT RESPOND. LEFT VM FOR PT ADV WE WERE RESPONDING TO HER CALL AND ASKED PT TO CALL BACK."
+        },
+        {
+          "id": "callback-answered",
+          "title": "Scheduled Callback - Patient Answered",
+          "content": "RESPONDED TO SCHEDULED CALL BACK, FOUND ACCNT USING PH# IN PTPAY. SW PT IN REGARD TO (REASON OF THE CALL), ADV BAL OF $**.**. (ACTION TAKEN ON ACCOUNT)"
+        }
+      ]
+    },
+    {
+      "id": "denials",
+      "name": "Denials",
+      "icon": "ph-prohibit",
+      "notes": [
+        {
+          "id": "den-investigating-claim",
+          "title": "Patient Investigating Claim",
+          "content": "EXPLAINED AS PER EOB FROM INS PR IS $** WHICH IS THE (COINSURANCE/COPAY/DEDUCTIBLE) AMNT. PROVIDED THE CLAIM# ON THE EOB AND ADV TO CONTACT INS DIRECTLY FOR MORE DETAILS. AOF AND PH# ARE CORRECT."
+        },
+        {
+          "id": "den-investigating-denial",
+          "title": "Patient Investigating Denial",
+          "content": "PT CLD WANTED TO KNOW WHY INS DID NOT COVER THE CHARGES. EXPLAINED (INSURANCE) DENIED OUR CLAIM BECAUSE OF (DENIAL REASON). PROVIDED THE CLAIM# ON THE EOB AND ADV TO CONTACT INS DIRECTLY FOR MORE DETAILS. AOF AND PH# ARE CORRECT."
+        },
+        {
+          "id": "den-wrong-ins-ptr",
+          "title": "Wrong Insurance - PTR Balance",
+          "content": "PT CLD SINCE RECIEVED OUR BILL, STATED WE SUBMITTED TO THE WRONG INS. PT CONFIRMED CORRECT INS IS (NAME OF INS) AS PRIMARY. EXPLAINED AS PER EOB FROM INS, PTR IS $**.**, ADV THE CLAIM WAS DENIED BECAUSE OF (DENIAL REASON). PROV PT WITH THE CLAIM# ON THE EOB AND ADV HER TO CONTACT HER INS DIRECTLY FOR MORE DETAILS. AOF AND PH# ARE CORRECT."
+        },
+        {
+          "id": "den-routine-exam",
+          "title": "Denial - Routine Exam Conjunction",
+          "content": "PT CLD, RECEIVED OUR BILL, STATED SHE HAS MCNJ AS PRI AND THEY SHOULD HAVE PAID. EXPLAINED AS PER EOB FROM INS PR IS $**.**, INS DENIED THE CLAIM STATING THAT THE CHARGES IS NON COVEREDED BECAUSE IT WAS DONE IN CONJUCTION WITH ANOTHER ROUTINE EXAM. PROVIDED THE CLAIM# ON THE EOB AND ADV TO CONTACT INS DIRECTLY FOR MORE DETAILS. AOF AND PH# ARE CORRECT."
+        }
+      ]
+    },
+    {
+      "id": "chartswap",
+      "name": "ChartSwap / Attorneys",
+      "icon": "ph-scales",
+      "notes": [
+        {
+          "id": "cs-request",
+          "title": "Attorney HIPAA Request via ChartSwap",
+          "content": "SW *** @ (ATTNY'S OFFICE) CLD, ADV SHE NEEDS TO REQUEST (INFO NEEDED BY ATTNY). ADV TO SUBMIT HIPAA AND BILL REQUEST THRU CS."
+        }
+      ]
+    },
+    {
+      "id": "charity",
+      "name": "Charity Care",
+      "icon": "ph-heart",
+      "notes": [
+        {
+          "id": "cc-applying",
+          "title": "Charity Care - Applying (Pending)",
+          "content": "PT CLD, RECEIVED OUR STATEMENT, PT DOES NOT HAVE INS, THEY ARE APPLYING FOR CHARITY CARE. ADV TO SEND US A COPY OF THE CHARITY CARE ONCE IT IS APPROVED SO WE CAN APPLY IT TO THE ACCNT. AOF AND PH# ARE CORRECT."
+        },
+        {
+          "id": "cc-has-fax",
+          "title": "Charity Care - Will Fax Approval",
+          "content": "PT CLD, ADV HE HAS CC. PROV OUR FAX AND ADV TO SEND US A COPY OF THE APPROVAL LTR SO WE CAN APPLY THE CC TO THE ACCNT. PT WILL (EMAIL/FAX) US THE CC APPROVAL. AOF AND PH# ARE CORRECT."
+        },
+        {
+          "id": "cc-has-email",
+          "title": "Charity Care - Will Email Approval",
+          "content": "PT CLD, ADV HE HAS CC. PROV OUR EMAIL AND ADV TO SEND US A COPY OF THE APPROVAL LTR SO WE CAN APPLY THE CC TO THE ACCNT. PT WILL (EMAIL/FAX) US THE CC APPROVAL. AOF AND PH# ARE CORRECT."
+        },
+        {
+          "id": "cc-received",
+          "title": "Charity Care - Received",
+          "content": "PT CLD BECAUSE RECEIVED OUR STATEMENT, PT DOES NOT HAVE INS, STATED THAT HAS CHARITY CARE. ADV TO DISREGARD THE PREVOIUS BILL AS IT HAS BEEN APPLIED TO THE ACCOUNT."
+        }
+      ]
+    },
+    {
+      "id": "payment-late",
+      "name": "Payment Posted Late",
+      "icon": "ph-clock-countdown",
+      "notes": [
+        {
+          "id": "late-same-day",
+          "title": "Final Notice - Payment Same Day",
+          "content": "PT RECEIVED FINAL NOTICE, ADV BALANCE IS $0.00, HER PMNT POSTED THE SAME DAY THE ACCNT WAS SCHEDULED TO SEND OUT THE FINAL NOTICE."
+        },
+        {
+          "id": "late-father",
+          "title": "Final Notice - Paid Online Before Post",
+          "content": "PT'S FATHER ANTHONY RECEIVED OUR FINAL NOTICE AFTER HE MADE PMNT ONLINE. ADV STATEMENT WAS SENT BEFORE THE PMNT WAS POSTED IN THE ACCNT. CONFIRMED ACCNT BALANCE IS 0."
+        },
+        {
+          "id": "late-after-pmnt",
+          "title": "Final Notice - After Payment",
+          "content": "PT RECEIVED OUR FINAL NOTICE AFTER PMNT WAS MADE. ADV STATEMENT WAS SENT BEFORE THE PMNT WAS POSTED IN THE ACCNT. CONFIRMED ACCNT BALANCE IS 0."
+        }
+      ]
+    },
+    {
+      "id": "emails-received",
+      "name": "Emails Received",
+      "icon": "ph-envelope-open",
+      "notes": [
+        {
+          "id": "em-mva-wc",
+          "title": "Email - MVA/WC Info from PT",
+          "content": "RECEIVED EMAIL FROM PT ADV DOS **/**/**** IS RELATED TO A MVA/WC CLAIM. UPD INS INFO ON ACCNT AND C/R CHARGES, ADV 30-45 DAYS FOR PROCESSING. EMAILED PT BACK AND CONFIRMED ACCNT WAS UPD AND CLAIM WAS REQUESTED TO BE SEND TO INS TO PROCESS."
+        },
+        {
+          "id": "em-ins-card",
+          "title": "Email - Insurance Card Copy",
+          "content": "RECEIVED EMAIL FROM PT PROV COPY OF INS CARD. UPD ACCNT AND C/R CHARGES TO (INS). EMAILED PT BACK AND ADV WE REQUESTED A CLAIM TO BE SEND TO THE INS TO PROCESS. ADV 30-45 DAYS FOR PROCESSING"
+        },
+        {
+          "id": "em-eob",
+          "title": "Email - EOB Copy (to AR)",
+          "content": "RECEIVED EMAIL FROM PT PROV A COPY OF THE EOB THE INS SENT HER. MOVED EMAIL TO AR SUPPORT FOLDER, PLEASE ATTACH TO ACCNT AND UPD ACCNT. THANK YOU!"
+        },
+        {
+          "id": "em-cc-info",
+          "title": "Email - Charity Care Info (to AR)",
+          "content": "RECEIVED EMAIL WITH PT'S CC INFO. MOVED EMAIL TO AR SUPPORT FOLDER, PLEASE ATTACH TO ACCNT AND ADJ BALANCE. THANK YOU!"
+        }
+      ]
+    },
+    {
+      "id": "arfup",
+      "name": "ARFUP Requests",
+      "icon": "ph-arrows-clockwise",
+      "notes": [
+        {
+          "id": "arfup-confirm-claim",
+          "title": "ARFUP - Confirm Claim Received",
+          "content": "AR PLEASE CONTACT AND CONFIRM IF THE CLAIM WAS RECEIVED.\nIF IT WAS NOT RECEIVED, PLEASE RESUBMIT AND IF IT WAS RECEIVED PLEASE HAVE THE INS SEND US A COPY OF THE EOB SO THE ACCNT CAN BE UPD."
+        },
+        {
+          "id": "arfup-zero-ptr-phone",
+          "title": "ARFUP - EOB Zero PTR (Phone)",
+          "content": "PT CLD, RECEIVED OUR STATEMENT. REVIEWED THE EOB ON FILE AND THERE IS $0.00 PTR LISTED. PLEASE UPD ACCNT ACCORDINGLY. THANK YOU!"
+        },
+        {
+          "id": "arfup-zero-ptr-email",
+          "title": "ARFUP - EOB Zero PTR (Email)",
+          "content": "RECEIVED EMAIL FROM (PT NAME) INQUIRING ABOUT THE STATEMENT. REVIEWED THE EOB ON FILE AND THERE IS $0.00 PTR LISTED. PLEASE UPD ACCNT ACCORDINGLY. THANK YOU!"
+        }
+      ]
+    },
+    {
+      "id": "email-responses",
+      "name": "Email Responses (Outbound)",
+      "icon": "ph-paper-plane-tilt",
+      "notes": [
+        {
+          "id": "er-filed-ins",
+          "title": "Filed with Insurance",
+          "content": "Good (Morning, Afternoon),\n\nThank you for providing this information, we have updated your account and a claim will be send to (Insurance Carrier) to process.\n\nHave a great day!"
+        },
+        {
+          "id": "er-charity-en",
+          "title": "Charity Received (English)",
+          "content": "Good (Morning, Afternoon),\n\nThank you for providing this information, we have sent a request to an account representative to attach the charity care copy provided to the account and to adjust the balance.\n\nHave a great day!"
+        },
+        {
+          "id": "er-charity-es",
+          "title": "Charity Received (Spanish)",
+          "content": "Buenos Dias,\n\nHemos recivido el charity care y lo hemos aplicado a su cuenta.\n\nMuchas Gracias!"
+        },
+        {
+          "id": "er-itemized",
+          "title": "Itemized Bill Sent",
+          "content": "Hello,\n\nPlease find a copy of the statement in the attachment.\n\nThank you,"
+        },
+        {
+          "id": "er-zero-en",
+          "title": "Zero Balance (English)",
+          "content": "Hello,\n\nWe apologize for the inconvenience, according to the Explanation of benefits the patient responsibility is $0.00.\n\nWe will update the account accordingly.\n\nThank you,"
+        },
+        {
+          "id": "er-zero-es",
+          "title": "Zero Balance (Spanish)",
+          "content": "Saludos\n\nEn el archivo adjunto puede encontrar su estado de cuenta con balance $0.00.\n\nMuchas gracias!"
+        },
+        {
+          "id": "er-ar-review",
+          "title": "AR Review - Follow Up",
+          "content": "Hello,\n\nYour information and request has been forwarded to an account representative for follow-up and review.\n\nThank you,"
+        },
+        {
+          "id": "er-ar-update-accnt",
+          "title": "AR Review - Update Account",
+          "content": "Good Morning,\n\nThank you for providing this information, we have sent a request to an account representative to update your account accordingly.\n\nHave a great day!"
+        },
+        {
+          "id": "er-ar-attach-doc",
+          "title": "AR Review - Attach Document",
+          "content": "Hello,\n\nThank you for providing this information, we have sent a request to an account representative to attach the document provided to the patient's account.\n\nHave a great day!"
+        },
+        {
+          "id": "er-charge-breakdown",
+          "title": "Charge Breakdown",
+          "content": "Hello,\n\nThe charges for                           are for the reading of the exam that was done at the facility.  The radiologists are contracted so their charges for reading the                    performed are separate.\n\nThank you,"
+        },
+        {
+          "id": "er-charge-breakdown-tos",
+          "title": "Charge Breakdown - TOS Payment",
+          "content": "Good Morning,\n\nThe charges for (name of the practice) are for the reading/interpretation of the radiology exam done at the facility.  The radiologists are contracted so their charges for reading the x-rays performed are separate.\nThe balance paid to (PLACE OF SERVICE) does not include the radiologist charges.\n\nThank you,"
+        },
+        {
+          "id": "er-hardship",
+          "title": "Hardship Request Instructions",
+          "content": "Hello,\n\nPlease be advised, in order to be considered for a Hardship write off we require an actual letter to be send to us either via mail, fax or an email attachment, the letter must contain proof of hardship if possible or detailed information proving you can't afford to pay the balance.\n\nThank you!"
+        },
+        {
+          "id": "er-disregard",
+          "title": "Disregard Statement - Ins Updated",
+          "content": "Hello,\n\nPlease disregard the statement, insurance information was updated on **/**/**** and a claim was sent to  (Insurance company name ) on **/**/**** to be processed.\n\nThank you!"
+        },
+        {
+          "id": "er-refund-cc",
+          "title": "Refund by Credit Card",
+          "content": "Good Morning,\n\nWe processed a refund in the amount of $**.** towards the Credit Card ending ****.\nPlease allow a few days for the refund to be processed by your bank, a separate email was sent with a copy of the refund receipt.\n\nThank you!"
+        },
+        {
+          "id": "er-missing-pmnt",
+          "title": "Missing Payment - ARFUP",
+          "content": "Hello,\n\nThank you for providing this information, we have sent a request to an account representative to locate the payment and update your account.\n\nHave a great day!"
+        },
+        {
+          "id": "er-ins-updated",
+          "title": "Insurance Info Updated",
+          "content": "Hello,\n\nThank you for providing this information, we will update the account and bill to (insurance name).\n\nHave a great day!"
+        },
+        {
+          "id": "er-pmnt-old-co",
+          "title": "Payment Sent to Old Billing Company",
+          "content": "Good Morning,\n\nThank you for providing this information, the receipt provided does not show our billing address, it seems the payment was made to the old billing company.\nWe have sent a request to an account representative to verify if we can have the payment forwarded to us.\n\nHave a great day!"
+        },
+        {
+          "id": "er-pmnt-plan-offer",
+          "title": "Payment Plan Offer",
+          "content": "Hello,\n\nWe can offer to set up a payment for X months paying $**.** and one last payment of $**.**.\nPlease email us back and let us know if you would like us to set up this payment plan in the account, auto draft payments plans must be set up over the phone with a call center agent by calling (888-333-8131 / 888-216-2675).\n\nThank you,"
+        }
+      ]
+    }
+  ]
+}
