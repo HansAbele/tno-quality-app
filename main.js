@@ -13,8 +13,11 @@ for (const envPath of envPaths) {
   }
 }
 
-const { app, BrowserWindow, ipcMain, screen, safeStorage } = require("electron");
+const { app, BrowserWindow, ipcMain, screen, safeStorage, globalShortcut } = require("electron");
+const { spawn } = require("child_process");
 const os = require("os");
+
+let mainWindow = null;
 
 function createWindow() {
   // 2. OBTENER DIMENSIONES DE LA PANTALLA
@@ -46,6 +49,7 @@ function createWindow() {
   win.setMenu(null);
 
   win.loadFile("index.html");
+  mainWindow = win;
 }
 
 // === LOGIN (Backend - credentials encrypted with OS Credential Manager) ===
@@ -335,6 +339,160 @@ ipcMain.handle("transcribe-audio", async (event, audioBase64) => {
   return { error: "Transcription unavailable. All models are busy, please try again in a moment." };
 });
 
+// === CALL NOTES (Encrypted storage + F9 arm/type via PowerShell SendKeys) ===
+const NOTES_FILE = path.join(VAULT_DIR, "notes.enc");
+
+ipcMain.handle("notes-load-custom", async () => {
+  try {
+    if (!fs.existsSync(NOTES_FILE)) return { success: true, data: { custom: [], overrides: {} } };
+    const decrypted = safeStorage.decryptString(fs.readFileSync(NOTES_FILE));
+    const parsed = JSON.parse(decrypted);
+    if (!parsed.custom) parsed.custom = [];
+    if (!parsed.overrides) parsed.overrides = {};
+    return { success: true, data: parsed };
+  } catch (error) {
+    console.error("Notes load error:", error);
+    return { success: true, data: { custom: [], overrides: {} } };
+  }
+});
+
+ipcMain.handle("notes-save-custom", async (event, data) => {
+  try {
+    if (!fs.existsSync(VAULT_DIR)) fs.mkdirSync(VAULT_DIR, { recursive: true });
+    fs.writeFileSync(NOTES_FILE, safeStorage.encryptString(JSON.stringify(data)));
+    return { success: true };
+  } catch (error) {
+    console.error("Notes save error:", error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Fast typing via Win32 SendInput with KEYEVENTF_UNICODE — orders of magnitude faster
+// than SendKeys because all keystrokes are dispatched in a single syscall and no virtual
+// key translation is needed (Unicode chars are injected directly).
+const TYPE_SCRIPT = `$src = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Collections.Generic;
+public static class KS {
+  [StructLayout(LayoutKind.Sequential)]
+  public struct INPUT { public uint type; public IU u; }
+  [StructLayout(LayoutKind.Explicit)]
+  public struct IU {
+    [FieldOffset(0)] public MI mi;
+    [FieldOffset(0)] public KI ki;
+    [FieldOffset(0)] public HI hi;
+  }
+  [StructLayout(LayoutKind.Sequential)]
+  public struct KI { public ushort wVk; public ushort wScan; public uint dwFlags; public uint time; public IntPtr dwExtraInfo; }
+  [StructLayout(LayoutKind.Sequential)]
+  public struct MI { public int dx; public int dy; public uint mouseData; public uint dwFlags; public uint time; public IntPtr dwExtraInfo; }
+  [StructLayout(LayoutKind.Sequential)]
+  public struct HI { public uint uMsg; public ushort wParamL; public ushort wParamH; }
+  [DllImport("user32.dll", SetLastError=true)]
+  public static extern uint SendInput(uint n, INPUT[] p, int cb);
+  public static void Type(string s) {
+    var list = new List<INPUT>();
+    foreach (char c in s) {
+      if (c == '\\r') continue;
+      if (c == '\\n') {
+        list.Add(new INPUT { type = 1, u = new IU { ki = new KI { wVk = 0x0D } } });
+        list.Add(new INPUT { type = 1, u = new IU { ki = new KI { wVk = 0x0D, dwFlags = 0x0002 } } });
+      } else {
+        list.Add(new INPUT { type = 1, u = new IU { ki = new KI { wScan = (ushort)c, dwFlags = 0x0004 } } });
+        list.Add(new INPUT { type = 1, u = new IU { ki = new KI { wScan = (ushort)c, dwFlags = 0x0004 | 0x0002 } } });
+      }
+    }
+    if (list.Count > 0) SendInput((uint)list.Count, list.ToArray(), Marshal.SizeOf(typeof(INPUT)));
+  }
+}
+"@
+Add-Type -TypeDefinition $src -Language CSharp
+Start-Sleep -Milliseconds 40
+$t = [Console]::In.ReadToEnd()
+[KS]::Type($t)`;
+
+function typeViaPowerShell(text) {
+  return new Promise((resolve, reject) => {
+    const encoded = Buffer.from(TYPE_SCRIPT, "utf16le").toString("base64");
+    const ps = spawn("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-EncodedCommand", encoded], {
+      stdio: ["pipe", "pipe", "pipe"],
+      windowsHide: true
+    });
+    let stderr = "";
+    ps.stderr.on("data", d => { stderr += d.toString(); });
+    ps.on("error", reject);
+    ps.on("close", (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(stderr || `PowerShell exit code ${code}`));
+    });
+    try {
+      ps.stdin.write(text);
+      ps.stdin.end();
+    } catch (err) { reject(err); }
+  });
+}
+
+let armedNoteText = null;
+let armedShortcut = null;
+
+function disarmInternal() {
+  if (armedShortcut) {
+    try { globalShortcut.unregister(armedShortcut); } catch (e) {}
+  }
+  armedShortcut = null;
+  armedNoteText = null;
+}
+
+ipcMain.handle("notes-arm", async (event, { text, shortcut }) => {
+  try {
+    disarmInternal();
+    const key = shortcut || "F9";
+    armedNoteText = text;
+    armedShortcut = key;
+
+    const ok = globalShortcut.register(key, async () => {
+      if (!armedNoteText) return;
+      // Prevent typing into our own app if it's focused
+      const focused = BrowserWindow.getFocusedWindow();
+      if (focused && focused === mainWindow) {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("note-type-skipped");
+        }
+        return;
+      }
+      const textToType = armedNoteText;
+      try {
+        await typeViaPowerShell(textToType);
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("note-typed");
+        }
+      } catch (err) {
+        console.error("SendKeys error:", err);
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("note-type-error", err.message);
+        }
+      }
+      disarmInternal();
+    });
+
+    if (!ok) {
+      disarmInternal();
+      return { success: false, error: `Shortcut ${key} is already in use by another application.` };
+    }
+    return { success: true };
+  } catch (error) {
+    console.error("Arm note error:", error);
+    disarmInternal();
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle("notes-disarm", async () => {
+  disarmInternal();
+  return { success: true };
+});
+
 // === CICLO DE VIDA DE LA APP ===
 app.whenReady().then(() => {
   createWindow();
@@ -344,6 +502,10 @@ app.whenReady().then(() => {
       createWindow();
     }
   });
+});
+
+app.on("will-quit", () => {
+  globalShortcut.unregisterAll();
 });
 
 app.on("window-all-closed", () => {

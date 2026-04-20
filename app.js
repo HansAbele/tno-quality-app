@@ -173,6 +173,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("profile-username").textContent = app.dataset.agentUser || "—";
     openSubview("settings-profile-view");
   });
+  document.getElementById("nav-notes").addEventListener("click", () => {
+    settingsContainer.classList.remove("active");
+    openNotesView();
+  });
   settingsBody.querySelectorAll(".settings-back-btn").forEach(btn => {
     btn.addEventListener("click", closeSubview);
   });
@@ -608,7 +612,375 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     sendChatMessage(question);
   };
+
+  // Initialize Call Notes
+  initNotes();
 });
+
+// --- TOAST NOTIFICATIONS ---
+function showToast(msg, variant) {
+  const toast = document.getElementById("toast-notification");
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.className = "toast-notification";
+  if (variant) toast.classList.add("toast-" + variant);
+  requestAnimationFrame(() => toast.classList.add("show"));
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3500);
+}
+
+function escHtml(str) {
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// --- CALL NOTES ---
+function initNotes() {
+  const notesContainer = document.getElementById("notes-container");
+  const notesBody = document.getElementById("notes-body");
+  const notesSearch = document.getElementById("notes-search");
+  const notesSearchClear = document.getElementById("notes-search-clear");
+  const notesBackBtn = document.getElementById("notes-back-btn");
+  const notesNewBtn = document.getElementById("notes-new-btn");
+  const armBanner = document.getElementById("notes-arm-banner");
+  const armDisarmBtn = document.getElementById("arm-disarm-btn");
+  const armNoteTitle = document.getElementById("arm-note-title");
+
+  // Editor elements
+  const editorBackdrop = document.getElementById("note-editor-backdrop");
+  const editorTitleEl = document.getElementById("note-editor-title");
+  const editorTitleInput = document.getElementById("note-editor-title-input");
+  const editorContent = document.getElementById("note-editor-content");
+  const editorSaveBtn = document.getElementById("note-editor-save");
+  const editorCancelBtn = document.getElementById("note-editor-cancel");
+  const editorCloseBtn = document.getElementById("note-editor-close");
+
+  const DEFAULT_SHORTCUT = "Ctrl+Alt+V";
+  let premade = { categories: [] };
+  let customData = { custom: [], overrides: {} };
+  let currentArmedId = null;
+  let expandedNoteId = null;
+  let editorMode = null;       // 'new' | 'edit-custom' | 'edit-premade'
+  let editorTargetId = null;
+  let currentShortcut = localStorage.getItem("tno-note-shortcut") || DEFAULT_SHORTCUT;
+
+  function updateBannerShortcut() {
+    const subEl = armBanner.querySelector(".arm-banner-sub");
+    if (!subEl) return;
+    const kbds = currentShortcut.split("+").map(k => `<kbd>${escHtml(k.trim())}</kbd>`).join("+");
+    subEl.innerHTML = `Click inside the remote, then press ${kbds}`;
+  }
+
+  async function loadNotes() {
+    try {
+      const res = await fetch("./notes_data.json");
+      premade = await res.json();
+    } catch (err) { console.error("Premade notes load failed:", err); }
+    try {
+      const result = await window.electronAPI.notesLoadCustom();
+      if (result && result.success) customData = result.data;
+    } catch (err) { console.error("Custom notes load failed:", err); }
+  }
+
+  async function persistCustom() {
+    try {
+      await window.electronAPI.notesSaveCustom(customData);
+    } catch (err) {
+      console.error("Custom notes save failed:", err);
+      showToast("Failed to save note", "error");
+    }
+  }
+
+  function getMergedCategories() {
+    const cats = JSON.parse(JSON.stringify(premade.categories || []));
+    cats.forEach(cat => {
+      cat.notes.forEach(note => {
+        const ov = customData.overrides[note.id];
+        if (ov) {
+          if (ov.title != null) note.title = ov.title;
+          if (ov.content != null) note.content = ov.content;
+          note._edited = true;
+        }
+      });
+    });
+    if (customData.custom && customData.custom.length > 0) {
+      cats.push({
+        id: "custom",
+        name: "My Notes",
+        icon: "ph-user-circle",
+        notes: customData.custom.slice()
+      });
+    }
+    return cats;
+  }
+
+  function findNote(noteId) {
+    const cats = getMergedCategories();
+    for (const cat of cats) {
+      const n = cat.notes.find(nn => nn.id === noteId);
+      if (n) return { note: n, cat };
+    }
+    return null;
+  }
+
+  function renderNotes() {
+    const search = notesSearch.value.trim().toLowerCase();
+    const cats = getMergedCategories();
+    notesSearchClear.style.display = search ? "flex" : "none";
+
+    let html = "";
+    let totalMatching = 0;
+
+    cats.forEach(cat => {
+      const matchesCat = !search || cat.name.toLowerCase().includes(search);
+      const filtered = cat.notes.filter(n =>
+        !search ||
+        matchesCat ||
+        n.title.toLowerCase().includes(search) ||
+        n.content.toLowerCase().includes(search)
+      );
+      if (filtered.length === 0) return;
+      totalMatching += filtered.length;
+
+      const expanded = !!search; // auto-expand during search
+      html += `<div class="note-category ${expanded ? "expanded" : "collapsed"}" data-cat-id="${escHtml(cat.id)}">
+        <button class="note-cat-header" type="button">
+          <i class="ph ${escHtml(cat.icon || "ph-folder")}"></i>
+          <span class="note-cat-name">${escHtml(cat.name)}</span>
+          <i class="ph ph-caret-down note-cat-caret"></i>
+        </button>
+        <div class="note-cat-list">
+          ${filtered.map(n => renderCard(n, cat.id === "custom")).join("")}
+        </div>
+      </div>`;
+    });
+
+    if (totalMatching === 0) {
+      html = `<div class="notes-empty">
+        <i class="ph ph-file-magnifying-glass"></i>
+        <div>No notes found${search ? ` for "${escHtml(search)}"` : ""}.</div>
+        ${!search ? '<button class="notes-empty-btn" onclick="document.getElementById(\'notes-new-btn\').click()"><i class="ph ph-plus"></i> Create your first note</button>' : ""}
+      </div>`;
+    }
+
+    notesBody.innerHTML = html;
+    attachCategoryListeners();
+    attachCardListeners();
+
+    if (expandedNoteId) {
+      const c = notesBody.querySelector(`[data-note-id="${CSS.escape(expandedNoteId)}"]`);
+      if (c) c.classList.add("expanded");
+    }
+    if (currentArmedId) {
+      const c = notesBody.querySelector(`[data-note-id="${CSS.escape(currentArmedId)}"]`);
+      if (c) c.classList.add("armed");
+    }
+  }
+
+  function renderCard(note, isCustom) {
+    const clean = note.content.replace(/\n+/g, " ").trim();
+    const preview = clean.length > 90 ? clean.substring(0, 90) + "…" : clean;
+    const edited = note._edited ? '<span class="note-edited-badge" title="Edited">edited</span>' : "";
+    return `<div class="note-card" data-note-id="${escHtml(note.id)}" data-is-custom="${isCustom ? "1" : "0"}">
+      <div class="note-card-head">
+        <div class="note-card-title">${escHtml(note.title)} ${edited}</div>
+        <i class="ph ph-caret-down note-card-caret"></i>
+      </div>
+      <div class="note-card-preview">${escHtml(preview)}</div>
+      <div class="note-card-full">
+        <pre class="note-card-content">${escHtml(note.content)}</pre>
+        <div class="note-card-actions">
+          <button class="note-btn note-btn-arm" data-action="arm"><i class="ph ph-target"></i> Send to Remote</button>
+          <button class="note-btn note-btn-edit" data-action="edit"><i class="ph ph-pencil-simple"></i> Edit</button>
+          ${isCustom ? '<button class="note-btn note-btn-delete" data-action="delete" title="Delete"><i class="ph ph-trash"></i></button>' : ""}
+          ${note._edited && !isCustom ? '<button class="note-btn note-btn-reset" data-action="reset" title="Reset to default"><i class="ph ph-arrow-counter-clockwise"></i></button>' : ""}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function attachCategoryListeners() {
+    notesBody.querySelectorAll(".note-cat-header").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const cat = btn.closest(".note-category");
+        cat.classList.toggle("expanded");
+        cat.classList.toggle("collapsed");
+      });
+    });
+  }
+
+  function attachCardListeners() {
+    notesBody.querySelectorAll(".note-card").forEach(card => {
+      card.querySelector(".note-card-head").addEventListener("click", () => {
+        const nowExpanded = !card.classList.contains("expanded");
+        notesBody.querySelectorAll(".note-card.expanded").forEach(c => {
+          if (c !== card) c.classList.remove("expanded");
+        });
+        card.classList.toggle("expanded", nowExpanded);
+        expandedNoteId = nowExpanded ? card.dataset.noteId : null;
+      });
+      card.querySelectorAll("[data-action]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const action = btn.dataset.action;
+          const noteId = card.dataset.noteId;
+          const isCustom = card.dataset.isCustom === "1";
+          if (action === "arm") armNote(noteId);
+          else if (action === "edit") openEditor(noteId, isCustom);
+          else if (action === "delete") deleteCustom(noteId);
+          else if (action === "reset") resetOverride(noteId);
+        });
+      });
+    });
+  }
+
+  async function armNote(noteId) {
+    const found = findNote(noteId);
+    if (!found) return;
+    const result = await window.electronAPI.notesArm(found.note.content, currentShortcut);
+    if (!result || !result.success) {
+      showToast(result && result.error ? result.error : "Failed to arm note", "error");
+      return;
+    }
+    currentArmedId = noteId;
+    armNoteTitle.textContent = found.note.title;
+    updateBannerShortcut();
+    armBanner.classList.add("active");
+    renderNotes();
+  }
+
+  async function disarmNote(silent) {
+    if (!currentArmedId) return;
+    try { await window.electronAPI.notesDisarm(); } catch (e) {}
+    currentArmedId = null;
+    armBanner.classList.remove("active");
+    renderNotes();
+    if (!silent) showToast("Note disarmed");
+  }
+
+  function openEditor(noteId, isCustom) {
+    if (noteId) {
+      const found = findNote(noteId);
+      if (!found) return;
+      editorMode = isCustom ? "edit-custom" : "edit-premade";
+      editorTargetId = noteId;
+      editorTitleEl.textContent = isCustom ? "Edit Note" : "Edit Premade Note";
+      editorTitleInput.value = found.note.title;
+      editorContent.value = found.note.content;
+    } else {
+      editorMode = "new";
+      editorTargetId = null;
+      editorTitleEl.textContent = "New Note";
+      editorTitleInput.value = "";
+      editorContent.value = "";
+    }
+    editorBackdrop.classList.add("active");
+    setTimeout(() => editorTitleInput.focus(), 50);
+  }
+
+  function closeEditor() {
+    editorBackdrop.classList.remove("active");
+    editorMode = null;
+    editorTargetId = null;
+  }
+
+  async function saveEditor() {
+    const title = editorTitleInput.value.trim();
+    const content = editorContent.value;
+    if (!title) { showToast("Title is required", "error"); editorTitleInput.focus(); return; }
+    if (!content.trim()) { showToast("Content is required", "error"); editorContent.focus(); return; }
+
+    if (editorMode === "new") {
+      const id = "custom-" + Date.now().toString(36);
+      customData.custom.push({ id, title, content });
+    } else if (editorMode === "edit-custom") {
+      const idx = customData.custom.findIndex(n => n.id === editorTargetId);
+      if (idx >= 0) customData.custom[idx] = { ...customData.custom[idx], title, content };
+    } else if (editorMode === "edit-premade") {
+      customData.overrides[editorTargetId] = { title, content };
+    }
+    await persistCustom();
+    closeEditor();
+    renderNotes();
+    showToast("Note saved");
+  }
+
+  async function deleteCustom(noteId) {
+    if (!confirm("Delete this note?")) return;
+    customData.custom = customData.custom.filter(n => n.id !== noteId);
+    await persistCustom();
+    if (currentArmedId === noteId) await disarmNote(true);
+    renderNotes();
+    showToast("Note deleted");
+  }
+
+  async function resetOverride(noteId) {
+    if (!confirm("Reset this note to the default version?")) return;
+    delete customData.overrides[noteId];
+    await persistCustom();
+    renderNotes();
+    showToast("Note reset to default");
+  }
+
+  // Typed event handlers from main process
+  if (window.electronAPI && window.electronAPI.onNoteTyped) {
+    window.electronAPI.onNoteTyped(() => {
+      currentArmedId = null;
+      armBanner.classList.remove("active");
+      renderNotes();
+      showToast("Typed into remote");
+    });
+    window.electronAPI.onNoteTypeSkipped(() => {
+      showToast("Click inside the remote first, then press F9", "warning");
+    });
+    window.electronAPI.onNoteTypeError((event, msg) => {
+      currentArmedId = null;
+      armBanner.classList.remove("active");
+      renderNotes();
+      showToast("Typing failed: " + (msg || "unknown error"), "error");
+    });
+  }
+
+  // Event listeners
+  notesBackBtn.addEventListener("click", () => {
+    closeNotesView();
+  });
+  notesNewBtn.addEventListener("click", () => openEditor(null, true));
+  notesSearch.addEventListener("input", renderNotes);
+  notesSearchClear.addEventListener("click", () => {
+    notesSearch.value = "";
+    renderNotes();
+    notesSearch.focus();
+  });
+  armDisarmBtn.addEventListener("click", () => disarmNote());
+
+  editorSaveBtn.addEventListener("click", saveEditor);
+  editorCancelBtn.addEventListener("click", closeEditor);
+  editorCloseBtn.addEventListener("click", closeEditor);
+  editorBackdrop.addEventListener("click", (e) => {
+    if (e.target === editorBackdrop) closeEditor();
+  });
+
+  function closeNotesView() {
+    disarmNote(true);
+    notesContainer.classList.remove("active");
+    expandedNoteId = null;
+    notesSearch.value = "";
+  }
+
+  window.openNotesView = async function() {
+    await loadNotes();
+    renderNotes();
+    notesContainer.classList.add("active");
+  };
+}
 
 // Global function called from collections error button
 function askCopilotCollections() {
