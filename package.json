@@ -39,10 +39,13 @@
       "icon": "logo.png"
     },
     "win": {
-      "target": "dir",
+      "target": ["portable"],
       "icon": "logo.png",
       "signAndEditExecutable": false,
       "forceCodeSigning": false
+    },
+    "portable": {
+      "artifactName": "TNO-Quality-Companion-${version}-portable.exe"
     }
   },
   "dependencies": {
