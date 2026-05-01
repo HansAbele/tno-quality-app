@@ -1047,7 +1047,6 @@ const SCENARIO_GROUPS = [
 function setupScenarioPalette(selectEl) {
   const trigger = document.getElementById("scenario-trigger");
   const triggerLabel = document.getElementById("scenario-trigger-label");
-  const triggerClear = document.getElementById("scenario-trigger-clear");
   const backdrop = document.getElementById("scenario-palette-backdrop");
   const input = document.getElementById("scenario-palette-input");
   const list = document.getElementById("scenario-palette-list");
@@ -1071,11 +1070,9 @@ function setupScenarioPalette(selectEl) {
     if (lbl) {
       triggerLabel.textContent = lbl;
       trigger.classList.add("has-selection");
-      triggerClear.hidden = false;
     } else {
       triggerLabel.textContent = "Search scenarios…";
       trigger.classList.remove("has-selection");
-      triggerClear.hidden = true;
     }
   }
 
@@ -1143,18 +1140,9 @@ function setupScenarioPalette(selectEl) {
     close();
   }
 
-  trigger.addEventListener("click", (e) => {
-    if (e.target.closest("#scenario-trigger-clear")) return;
-    open();
-  });
+  trigger.addEventListener("click", () => open());
   trigger.addEventListener("keydown", (e) => {
-    if (e.target.closest("#scenario-trigger-clear")) return;
     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
-  });
-  triggerClear.addEventListener("click", (e) => {
-    e.stopPropagation();
-    selectEl.value = "";
-    selectEl.dispatchEvent(new Event("change", { bubbles: true }));
   });
   backdrop.addEventListener("click", (e) => {
     if (e.target === backdrop) close();
