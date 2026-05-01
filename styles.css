@@ -230,8 +230,8 @@ input:focus, select:focus { outline: none; border-color: var(--tno-orange); }
   letter-spacing: 0;
 }
 .caller-trigger.has-selection { border-color: var(--tno-orange); }
-.caller-trigger:hover { border-color: var(--text-gray); }
-.caller-trigger.has-selection:hover { border-color: var(--tno-orange); }
+.caller-trigger:hover { border-color: var(--text-gray); background: var(--bg-card); color: var(--text-strong); }
+.caller-trigger.has-selection:hover { border-color: var(--tno-orange); background: var(--bg-card); }
 .caller-trigger:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.18);
@@ -327,6 +327,7 @@ input:focus, select:focus { outline: none; border-color: var(--tno-orange); }
 /* Scenario Command Palette */
 .scenario-trigger {
   width: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 10px;
