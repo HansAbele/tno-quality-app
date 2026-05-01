@@ -120,7 +120,10 @@
 
     <div class="app-container" id="app-container" style="display:none;">
       <div class="header">
-        <div class="header-spacer"></div>
+        <button type="button" class="callpad-icon-btn" id="callpad-open-btn" title="Open Call Pad (Ctrl+Shift+N)" aria-label="Open Call Pad">
+          <i class="ph ph-note-pencil"></i>
+          <span class="callpad-dot" id="callpad-dot" hidden></span>
+        </button>
         <div class="brand-container">
           <img src="./logo.png" alt="TNO" class="logo-img" onerror="this.style.display='none'" />
           <div class="logo-text">Telecom Networks</div>
@@ -598,11 +601,6 @@
       <div class="footer">
         <div id="congrats-msg" class="success-msg">✓ CALL COMPLETED (100%)</div>
         <div class="footer-buttons">
-            <button type="button" id="callpad-open-btn" class="callpad-btn" title="Open Call Pad (Ctrl+Shift+N)">
-              <i class="ph ph-note-pencil"></i>
-              <span>Pad</span>
-              <span class="callpad-dot" id="callpad-dot" hidden></span>
-            </button>
             <button id="end-call-btn" disabled>END CALL</button>
         </div>
         <div class="footer-bottom">
@@ -713,23 +711,15 @@
             </button>
             <div class="settings-section">
               <div class="settings-section-title">Theme</div>
-              <div class="theme-cards">
-                <button type="button" class="theme-card" data-theme="light" id="theme-card-light" aria-label="Light theme">
-                  <div class="theme-card-preview theme-card-preview--light">
-                    <div class="theme-card-preview-bar"></div>
-                    <div class="theme-card-preview-line"></div>
-                    <div class="theme-card-preview-line short"></div>
-                  </div>
-                  <div class="theme-card-label">Light <i class="ph ph-sun"></i></div>
-                </button>
-                <button type="button" class="theme-card" data-theme="dark" id="theme-card-dark" aria-label="Dark theme">
-                  <div class="theme-card-preview theme-card-preview--dark">
-                    <div class="theme-card-preview-bar"></div>
-                    <div class="theme-card-preview-line"></div>
-                    <div class="theme-card-preview-line short"></div>
-                  </div>
-                  <div class="theme-card-label">Dark <i class="ph ph-moon"></i></div>
-                </button>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label"><i class="ph ph-moon"></i> Dark Mode</div>
+                  <div class="settings-row-desc">Switch between light and dark theme</div>
+                </div>
+                <label class="theme-toggle">
+                  <input type="checkbox" id="theme-toggle-input" />
+                  <span class="theme-toggle-slider"></span>
+                </label>
               </div>
             </div>
             <div class="settings-section">
@@ -915,15 +905,12 @@
       <div class="callpad-sheet" role="dialog" aria-label="Call Pad">
         <div class="callpad-header">
           <div class="callpad-header-title">
-            <i class="ph ph-note-pencil"></i> Call Pad
+            <i class="ph ph-note-pencil"></i>
+            <span>Call Pad</span>
           </div>
           <button type="button" class="callpad-close" id="callpad-close" title="Close (Esc)" aria-label="Close">
             <i class="ph ph-x"></i>
           </button>
-        </div>
-        <div class="callpad-banner">
-          <i class="ph ph-lock-key"></i>
-          <span>Auto-clears at End Call &middot; <strong>Do not type patient names, MRN, DOB, or phone numbers.</strong></span>
         </div>
         <textarea id="callpad-text" class="callpad-text" placeholder="Quick reminders, scripts, denial codes, or anything you need to remember during the call. Cleared automatically when the call ends."></textarea>
         <div class="callpad-footer">

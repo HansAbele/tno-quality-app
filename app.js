@@ -144,20 +144,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     settingsContainer.classList.remove("active");
   });
 
-  // Theme Cards (Light / Dark)
-  const themeCardLight = document.getElementById("theme-card-light");
-  const themeCardDark = document.getElementById("theme-card-dark");
+  // Theme Toggle
+  const themeToggleInput = document.getElementById("theme-toggle-input");
+  const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+  themeToggleInput.checked = currentTheme === "dark";
 
-  function applyTheme(t) {
-    document.documentElement.setAttribute("data-theme", t);
-    localStorage.setItem("tno-theme", t);
-    themeCardLight.classList.toggle("active", t === "light");
-    themeCardDark.classList.toggle("active", t === "dark");
-  }
-
-  applyTheme(document.documentElement.getAttribute("data-theme") || "light");
-  themeCardLight.addEventListener("click", () => applyTheme("light"));
-  themeCardDark.addEventListener("click", () => applyTheme("dark"));
+  themeToggleInput.addEventListener("change", () => {
+    const newTheme = themeToggleInput.checked ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("tno-theme", newTheme);
+  });
 
   // Settings sub-view navigation
   const settingsBody = document.querySelector(".settings-body");

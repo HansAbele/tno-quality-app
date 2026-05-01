@@ -230,10 +230,11 @@ input:focus, select:focus { outline: none; border-color: var(--tno-orange); }
   letter-spacing: 0;
 }
 .caller-trigger.has-selection { border-color: var(--tno-orange); }
-.caller-trigger:hover { border-color: var(--tno-orange); }
+.caller-trigger:hover { border-color: var(--text-gray); }
+.caller-trigger.has-selection:hover { border-color: var(--tno-orange); }
 .caller-trigger:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.15);
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.18);
 }
 .caller-trigger-label {
   font-weight: 600;
@@ -316,8 +317,9 @@ input:focus, select:focus { outline: none; border-color: var(--tno-orange); }
 [data-theme="dark"] .caller-trigger,
 [data-theme="dark"] .caller-options,
 [data-theme="dark"] .caller-option { border-color: #334155; }
-[data-theme="dark"] .caller-trigger.has-selection,
-[data-theme="dark"] .caller-trigger:hover { border-color: var(--tno-orange); }
+[data-theme="dark"] .caller-trigger.has-selection { border-color: var(--tno-orange); }
+[data-theme="dark"] .caller-trigger:hover { border-color: #64748b; }
+[data-theme="dark"] .caller-trigger.has-selection:hover { border-color: var(--tno-orange); }
 [data-theme="dark"] .caller-option { color: #e2e8f0; }
 [data-theme="dark"] .caller-option:hover { background: #2d3b4e; }
 [data-theme="dark"] .caller-option.selected { background: rgba(255, 102, 0, 0.12); color: var(--tno-orange); }
@@ -356,6 +358,10 @@ input:focus, select:focus { outline: none; border-color: var(--tno-orange); }
   flex: 1;
   text-align: left;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .scenario-trigger.has-selection .scenario-trigger-label {
   font-weight: 600;
@@ -382,7 +388,9 @@ input:focus, select:focus { outline: none; border-color: var(--tno-orange); }
   align-items: center;
   font-size: 0.95rem;
   transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
 }
+.scenario-trigger-clear[hidden] { display: none !important; }
 .scenario-trigger-clear:hover {
   background: var(--bg-elevated);
   color: var(--danger);
@@ -886,78 +894,28 @@ i.ph { font-size: 1.3rem; margin-right: 8px; vertical-align: middle; color: var(
 .settings-row-label i { color: var(--tno-orange); font-size: 1.1rem; margin: 0; }
 .settings-row-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
 
-/* Theme Cards (Light / Dark) */
-.theme-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 4px;
+/* Theme Toggle Switch */
+.theme-toggle { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
+.theme-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+.theme-toggle-slider {
+  position: absolute; cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--border-light);
+  border-radius: 26px;
+  transition: background-color 0.3s;
 }
-.theme-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px;
-  background: var(--bg-elevated);
-  border: 2px solid var(--border-light);
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
-  font-family: inherit;
-  text-align: left;
+.theme-toggle-slider::before {
+  content: "";
+  position: absolute;
+  height: 20px; width: 20px;
+  left: 3px; bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.theme-card:hover {
-  border-color: var(--text-muted);
-  transform: translateY(-1px);
-}
-.theme-card.active {
-  border-color: var(--tno-orange);
-  box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.12);
-}
-.theme-card-preview {
-  height: 56px;
-  border-radius: 4px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.theme-card-preview--light {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-}
-.theme-card-preview--dark {
-  background: #1e293b;
-  border: 1px solid #334155;
-}
-.theme-card-preview-bar {
-  height: 4px;
-  width: 100%;
-  background: var(--tno-orange);
-  border-radius: 2px;
-}
-.theme-card-preview-line {
-  height: 6px;
-  background: rgba(148, 163, 184, 0.45);
-  border-radius: 2px;
-}
-.theme-card-preview-line.short { width: 60%; }
-.theme-card-preview--dark .theme-card-preview-line {
-  background: rgba(148, 163, 184, 0.3);
-}
-.theme-card-label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-strong);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-.theme-card-label i {
-  color: var(--tno-orange);
-  font-size: 0.95rem;
-}
+.theme-toggle input:checked + .theme-toggle-slider { background: var(--tno-orange); }
+.theme-toggle input:checked + .theme-toggle-slider::before { transform: translateX(22px); }
 
 /* Segmented Control (font size, language) */
 .segmented-control {
@@ -1671,24 +1629,18 @@ i.ph { font-size: 1.3rem; margin-right: 8px; vertical-align: middle; color: var(
 }
 
 /* Call Pad — in-memory scratchpad (no PHI, wipes at End Call) */
-.callpad-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 14px;
-  background: var(--bg-card);
-  border: 1.5px solid var(--border-light);
-  border-radius: var(--radius);
-  font-family: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--tno-blue);
-  cursor: pointer;
+.callpad-icon-btn {
+  width: 36px; height: 36px;
+  background: transparent;
+  border-radius: 50%;
+  display: flex; justify-content: center; align-items: center;
+  cursor: pointer; border: none; padding: 0; flex-shrink: 0;
+  color: var(--text-muted);
+  transition: color 0.2s, background 0.2s;
   position: relative;
-  transition: border-color 0.15s, color 0.15s;
 }
-.callpad-btn:hover { border-color: var(--tno-orange); color: var(--tno-orange); }
-.callpad-btn i { font-size: 1rem; }
+.callpad-icon-btn i { font-size: 1.3rem; margin: 0; color: inherit; }
+.callpad-icon-btn:hover { color: var(--tno-orange); background: transparent; }
 .callpad-dot {
   position: absolute;
   top: 6px;
@@ -1699,6 +1651,7 @@ i.ph { font-size: 1.3rem; margin-right: 8px; vertical-align: middle; color: var(
   border-radius: 50%;
   box-shadow: 0 0 0 2px var(--bg-card);
 }
+.callpad-dot[hidden] { display: none !important; }
 
 .callpad-backdrop {
   position: fixed;
@@ -1732,6 +1685,7 @@ i.ph { font-size: 1.3rem; margin-right: 8px; vertical-align: middle; color: var(
   justify-content: space-between;
   padding: 14px 18px;
   border-bottom: 1px solid var(--border-light);
+  gap: 12px;
 }
 .callpad-header-title {
   display: flex;
@@ -1740,9 +1694,14 @@ i.ph { font-size: 1.3rem; margin-right: 8px; vertical-align: middle; color: var(
   font-weight: 700;
   font-size: 0.95rem;
   color: var(--text-strong);
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
-.callpad-header-title i { color: var(--tno-orange); font-size: 1.1rem; }
+.callpad-header-title i { color: var(--tno-orange); font-size: 1.1rem; flex-shrink: 0; }
+.callpad-header-title span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .callpad-close {
+  width: auto;
   background: transparent;
   border: none;
   color: var(--text-muted);
@@ -1753,20 +1712,11 @@ i.ph { font-size: 1.3rem; margin-right: 8px; vertical-align: middle; color: var(
   display: inline-flex;
   align-items: center;
   transition: background 0.15s, color 0.15s;
+  text-transform: none;
+  letter-spacing: 0;
+  flex-shrink: 0;
 }
 .callpad-close:hover { background: var(--bg-elevated); color: var(--text-strong); }
-.callpad-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px 18px;
-  background: var(--warning-bg);
-  color: var(--warning-text);
-  font-size: 0.78rem;
-  border-bottom: 1px solid var(--scenario-border);
-}
-.callpad-banner i { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
-.callpad-banner strong { font-weight: 700; }
 .callpad-text {
   flex: 1;
   width: 100%;
@@ -1801,6 +1751,7 @@ i.ph { font-size: 1.3rem; margin-right: 8px; vertical-align: middle; color: var(
   gap: 8px;
 }
 .callpad-action-btn {
+  width: auto;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -1814,6 +1765,8 @@ i.ph { font-size: 1.3rem; margin-right: 8px; vertical-align: middle; color: var(
   color: var(--text-strong);
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
+  text-transform: none;
+  letter-spacing: 0;
 }
 .callpad-action-btn:hover { border-color: var(--tno-orange); color: var(--tno-orange); }
 .callpad-action-btn--danger:hover { border-color: var(--danger); color: var(--danger); }
@@ -1825,12 +1778,12 @@ i.ph { font-size: 1.3rem; margin-right: 8px; vertical-align: middle; color: var(
 .callpad-action-btn--primary:hover { background: var(--btn-hover); border-color: var(--btn-hover); color: #fff; }
 .callpad-action-btn i { font-size: 0.9rem; }
 
-[data-theme="dark"] .callpad-btn { background: #1e293b; border-color: #334155; color: #e2e8f0; }
-[data-theme="dark"] .callpad-dot { box-shadow: 0 0 0 2px #1e293b; }
+[data-theme="dark"] .callpad-icon-btn { color: #94a3b8; }
+[data-theme="dark"] .callpad-icon-btn:hover { color: var(--tno-orange); }
+[data-theme="dark"] .callpad-dot { box-shadow: 0 0 0 2px var(--bg-card); }
 [data-theme="dark"] .callpad-sheet { background: #1e293b; }
 [data-theme="dark"] .callpad-header { border-color: #334155; }
 [data-theme="dark"] .callpad-header-title { color: #f1f5f9; }
-[data-theme="dark"] .callpad-banner { background: rgba(255, 102, 0, 0.12); color: #fdba74; border-color: #334155; }
 [data-theme="dark"] .callpad-text { background: #1e293b; color: #e2e8f0; }
 [data-theme="dark"] .callpad-footer { background: #0f172a; border-color: #334155; }
 [data-theme="dark"] .callpad-action-btn { background: #1e293b; border-color: #334155; color: #e2e8f0; }
