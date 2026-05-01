@@ -378,24 +378,6 @@ input:focus, select:focus { outline: none; border-color: var(--tno-orange); }
   color: var(--text-muted);
 }
 .scenario-trigger.has-selection .scenario-trigger-kbd { display: none; }
-.scenario-trigger-clear {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--text-muted);
-  padding: 2px 4px;
-  border-radius: 4px;
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.95rem;
-  transition: background 0.15s, color 0.15s;
-  flex-shrink: 0;
-}
-.scenario-trigger-clear[hidden] { display: none !important; }
-.scenario-trigger-clear:hover {
-  background: var(--bg-elevated);
-  color: var(--danger);
-}
 
 .scenario-palette-backdrop {
   position: fixed;
