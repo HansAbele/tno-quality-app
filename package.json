@@ -39,13 +39,22 @@
       "icon": "logo.png"
     },
     "win": {
-      "target": ["portable"],
-      "icon": "logo.png",
+      "target": ["nsis"],
+      "icon": "logo.ico",
       "signAndEditExecutable": false,
       "forceCodeSigning": false
     },
-    "portable": {
-      "artifactName": "TNO-Quality-Companion-${version}-portable.exe"
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "TNO Quality Companion",
+      "installerIcon": "logo.ico",
+      "uninstallerIcon": "logo.ico",
+      "installerHeaderIcon": "logo.ico",
+      "artifactName": "TNO-Quality-Companion-Setup-${version}.exe"
     }
   },
   "dependencies": {
