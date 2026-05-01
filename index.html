@@ -186,8 +186,53 @@
           </section>
 
           <div class="caller-section">
-            <label class="input-label">Who is calling?</label>
-            <select id="caller-type">
+            <label class="input-label"><i class="ph ph-user"></i> Who is calling?</label>
+            <div class="caller-picker" id="caller-picker">
+              <button type="button" class="caller-trigger" id="caller-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="caller-trigger-label" id="caller-trigger-label">-- SELECT CALLER --</span>
+                <span class="caller-trigger-hint" id="caller-trigger-hint"></span>
+                <i class="ph ph-caret-right caller-trigger-caret"></i>
+              </button>
+              <div class="caller-options" id="caller-options" role="listbox">
+                <button type="button" class="caller-option" role="option" data-value="patient">
+                  <span class="caller-option-label">Patient</span>
+                  <span class="caller-option-hint">Full HIPAA access</span>
+                </button>
+                <button type="button" class="caller-option" role="option" data-value="spouse">
+                  <span class="caller-option-label">Spouse / Partner</span>
+                  <span class="caller-option-hint">Auth required</span>
+                </button>
+                <button type="button" class="caller-option" role="option" data-value="child">
+                  <span class="caller-option-label">Child / Relative</span>
+                  <span class="caller-option-hint">Auth required</span>
+                </button>
+                <button type="button" class="caller-option" role="option" data-value="parent">
+                  <span class="caller-option-label">Parent</span>
+                  <span class="caller-option-hint">Minor &rarr; full access</span>
+                </button>
+                <button type="button" class="caller-option" role="option" data-value="facility">
+                  <span class="caller-option-label">Facility / Doctor's Office</span>
+                  <span class="caller-option-hint">Covered Entity</span>
+                </button>
+                <button type="button" class="caller-option" role="option" data-value="lawyer">
+                  <span class="caller-option-label">Lawyer / Law Firm</span>
+                  <span class="caller-option-hint">ChartSwap req.</span>
+                </button>
+                <button type="button" class="caller-option" role="option" data-value="insurance">
+                  <span class="caller-option-label">Insurance / WC / VA</span>
+                  <span class="caller-option-hint">Direct release</span>
+                </button>
+                <button type="button" class="caller-option" role="option" data-value="other">
+                  <span class="caller-option-label">Other</span>
+                  <span class="caller-option-hint">Auth required</span>
+                </button>
+                <button type="button" class="caller-option" role="option" data-value="third_party">
+                  <span class="caller-option-label">Third Party</span>
+                  <span class="caller-option-hint">Auth required</span>
+                </button>
+              </div>
+            </div>
+            <select id="caller-type" class="caller-hidden-select" aria-hidden="true" tabindex="-1">
               <option value="" selected>-- SELECT CALLER --</option>
               <option value="patient">Patient</option>
               <option value="spouse">Spouse / Partner</option>
@@ -250,7 +295,15 @@
 
           <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-light);">
             <label class="input-label"><i class="ph ph-git-branch"></i> Call Reason / Scenario</label>
-            <select id="call-scenario">
+            <div class="scenario-trigger" id="scenario-trigger" role="button" tabindex="0" aria-haspopup="dialog">
+              <i class="ph ph-magnifying-glass scenario-trigger-icon"></i>
+              <span class="scenario-trigger-label" id="scenario-trigger-label">Search scenarios&hellip;</span>
+              <kbd class="scenario-trigger-kbd">Ctrl K</kbd>
+              <button type="button" class="scenario-trigger-clear" id="scenario-trigger-clear" title="Clear" aria-label="Clear scenario" hidden>
+                <i class="ph ph-x"></i>
+              </button>
+            </div>
+            <select id="call-scenario" class="caller-hidden-select" aria-hidden="true" tabindex="-1">
               <option value="">-- SELECT SCENARIO --</option>
               <option value="payment">Make a Payment</option>
               <option value="payment_plan">Set up Payment Plan</option>
@@ -273,6 +326,19 @@
               <option value="wc">Workers' Compensation</option>
               <option value="law_firm">Law Firm / Attorney</option>
             </select>
+          </div>
+
+          <!-- Scenario Command Palette -->
+          <div class="scenario-palette-backdrop" id="scenario-palette-backdrop" hidden>
+            <div class="scenario-palette" id="scenario-palette" role="dialog" aria-label="Select call scenario">
+              <div class="scenario-palette-search">
+                <i class="ph ph-magnifying-glass"></i>
+                <input type="text" id="scenario-palette-input" placeholder="Type to filter&hellip;" autocomplete="off" />
+                <kbd class="scenario-palette-esc">Esc</kbd>
+              </div>
+              <div class="scenario-palette-list" id="scenario-palette-list" role="listbox"></div>
+              <div class="scenario-palette-empty" id="scenario-palette-empty" hidden>No scenarios match.</div>
+            </div>
           </div>
 
           <div id="deceased-form" class="scenario-form-box">
@@ -532,6 +598,11 @@
       <div class="footer">
         <div id="congrats-msg" class="success-msg">✓ CALL COMPLETED (100%)</div>
         <div class="footer-buttons">
+            <button type="button" id="callpad-open-btn" class="callpad-btn" title="Open Call Pad (Ctrl+Shift+N)">
+              <i class="ph ph-note-pencil"></i>
+              <span>Pad</span>
+              <span class="callpad-dot" id="callpad-dot" hidden></span>
+            </button>
             <button id="end-call-btn" disabled>END CALL</button>
         </div>
         <div class="footer-bottom">
@@ -642,15 +713,23 @@
             </button>
             <div class="settings-section">
               <div class="settings-section-title">Theme</div>
-              <div class="settings-row">
-                <div>
-                  <div class="settings-row-label"><i class="ph ph-moon"></i> Dark Mode</div>
-                  <div class="settings-row-desc">Switch between light and dark theme</div>
-                </div>
-                <label class="theme-toggle">
-                  <input type="checkbox" id="theme-toggle-input" />
-                  <span class="theme-toggle-slider"></span>
-                </label>
+              <div class="theme-cards">
+                <button type="button" class="theme-card" data-theme="light" id="theme-card-light" aria-label="Light theme">
+                  <div class="theme-card-preview theme-card-preview--light">
+                    <div class="theme-card-preview-bar"></div>
+                    <div class="theme-card-preview-line"></div>
+                    <div class="theme-card-preview-line short"></div>
+                  </div>
+                  <div class="theme-card-label">Light <i class="ph ph-sun"></i></div>
+                </button>
+                <button type="button" class="theme-card" data-theme="dark" id="theme-card-dark" aria-label="Dark theme">
+                  <div class="theme-card-preview theme-card-preview--dark">
+                    <div class="theme-card-preview-bar"></div>
+                    <div class="theme-card-preview-line"></div>
+                    <div class="theme-card-preview-line short"></div>
+                  </div>
+                  <div class="theme-card-label">Dark <i class="ph ph-moon"></i></div>
+                </button>
               </div>
             </div>
             <div class="settings-section">
@@ -826,6 +905,33 @@
               <button class="note-cancel-btn" id="note-editor-cancel">Cancel</button>
               <button class="note-save-btn" id="note-editor-save"><i class="ph ph-floppy-disk"></i> Save</button>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Call Pad bottom sheet -->
+    <div class="callpad-backdrop" id="callpad-backdrop" hidden>
+      <div class="callpad-sheet" role="dialog" aria-label="Call Pad">
+        <div class="callpad-header">
+          <div class="callpad-header-title">
+            <i class="ph ph-note-pencil"></i> Call Pad
+          </div>
+          <button type="button" class="callpad-close" id="callpad-close" title="Close (Esc)" aria-label="Close">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <div class="callpad-banner">
+          <i class="ph ph-lock-key"></i>
+          <span>Auto-clears at End Call &middot; <strong>Do not type patient names, MRN, DOB, or phone numbers.</strong></span>
+        </div>
+        <textarea id="callpad-text" class="callpad-text" placeholder="Quick reminders, scripts, denial codes, or anything you need to remember during the call. Cleared automatically when the call ends."></textarea>
+        <div class="callpad-footer">
+          <div class="callpad-meta" id="callpad-meta">Empty</div>
+          <div class="callpad-actions">
+            <button type="button" class="callpad-action-btn" id="callpad-copy-btn"><i class="ph ph-copy"></i> Copy all</button>
+            <button type="button" class="callpad-action-btn callpad-action-btn--danger" id="callpad-clear-btn"><i class="ph ph-trash"></i> Clear</button>
+            <button type="button" class="callpad-action-btn callpad-action-btn--primary" id="callpad-close-btn">Close</button>
           </div>
         </div>
       </div>

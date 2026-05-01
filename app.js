@@ -55,9 +55,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Listeners
   const scenarioSelect = document.getElementById("call-scenario");
   scenarioSelect.addEventListener("change", updateScenario);
+  setupScenarioPalette(scenarioSelect);
 
   const callerSelect = document.getElementById("caller-type");
   callerSelect.addEventListener("change", updateCallerType);
+  setupCallerPicker(callerSelect);
 
   document.querySelectorAll('input[name="hipaa"], input[name="pt-minor"]').forEach(radio => {
     radio.addEventListener("change", updateCallerType);
@@ -85,6 +87,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.getElementById("end-call-btn").addEventListener("click", endCall);
+
+  setupCallPad();
 
   document.getElementById("checklist-container").addEventListener("change", function (e) {
     if (e.target.classList.contains("step")) {
@@ -140,16 +144,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     settingsContainer.classList.remove("active");
   });
 
-  // Theme Toggle
-  const themeToggleInput = document.getElementById("theme-toggle-input");
-  const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
-  themeToggleInput.checked = currentTheme === "dark";
+  // Theme Cards (Light / Dark)
+  const themeCardLight = document.getElementById("theme-card-light");
+  const themeCardDark = document.getElementById("theme-card-dark");
 
-  themeToggleInput.addEventListener("change", () => {
-    const newTheme = themeToggleInput.checked ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", newTheme);
-    localStorage.setItem("tno-theme", newTheme);
-  });
+  function applyTheme(t) {
+    document.documentElement.setAttribute("data-theme", t);
+    localStorage.setItem("tno-theme", t);
+    themeCardLight.classList.toggle("active", t === "light");
+    themeCardDark.classList.toggle("active", t === "dark");
+  }
+
+  applyTheme(document.documentElement.getAttribute("data-theme") || "light");
+  themeCardLight.addEventListener("click", () => applyTheme("light"));
+  themeCardDark.addEventListener("click", () => applyTheme("dark"));
 
   // Settings sub-view navigation
   const settingsBody = document.querySelector(".settings-body");
@@ -374,6 +382,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Logout
   document.getElementById("logout-btn").addEventListener("click", () => {
     settingsContainer.classList.remove("active");
+    if (typeof wipeCallPad === "function") wipeCallPad();
     resetUI();
     window.electronAPI.clearSession();
     const appContainer = document.getElementById("app-container");
@@ -1006,6 +1015,337 @@ function askCopilotAboutDenial(code, desc) {
 
 // --- BUSINESS LOGIC FUNCTIONS ---
 
+const SCENARIO_GROUPS = [
+  { title: "Payments", items: [
+    { value: "payment", label: "Make a Payment" },
+    { value: "payment_plan", label: "Set up Payment Plan" },
+    { value: "balance_inquiry", label: "Balance Inquiry" },
+    { value: "collections", label: "Balance in Collections" },
+    { value: "check_payment", label: "Payment by Check / Money Order" },
+    { value: "hsa_payment", label: "Payment via HSA / HRA" },
+    { value: "refund", label: "Refund Request" },
+    { value: "paper_bill", label: "Request Paper Bill" }
+  ]},
+  { title: "Claims", items: [
+    { value: "claim_status", label: "Claim Status" },
+    { value: "submit_claim", label: "Submit Claim to Insurance" },
+    { value: "followup", label: "Follow-up (Previous Escalation)" }
+  ]},
+  { title: "Escalations", items: [
+    { value: "escalation_sup", label: "Escalation to Supervisor" },
+    { value: "escalation_ar", label: "Escalation to AR (Validator)" }
+  ]},
+  { title: "Balance / Support", items: [
+    { value: "selfpay", label: "Self-Pay Discount Inquiry" },
+    { value: "charity", label: "Charity Care" }
+  ]},
+  { title: "Legal / Special", items: [
+    { value: "patient_deceased", label: "Patient Passed Away" },
+    { value: "mva", label: "Motor Vehicle Accident" },
+    { value: "wc", label: "Workers' Compensation" },
+    { value: "veteran", label: "Veteran / VA / Tricare" },
+    { value: "law_firm", label: "Law Firm / Attorney" }
+  ]}
+];
+
+function setupScenarioPalette(selectEl) {
+  const trigger = document.getElementById("scenario-trigger");
+  const triggerLabel = document.getElementById("scenario-trigger-label");
+  const triggerClear = document.getElementById("scenario-trigger-clear");
+  const backdrop = document.getElementById("scenario-palette-backdrop");
+  const input = document.getElementById("scenario-palette-input");
+  const list = document.getElementById("scenario-palette-list");
+  const empty = document.getElementById("scenario-palette-empty");
+  if (!trigger || !backdrop || !list) return;
+
+  let activeIndex = 0;
+  let visibleItems = [];
+
+  function labelForValue(v) {
+    for (const g of SCENARIO_GROUPS) {
+      const item = g.items.find(i => i.value === v);
+      if (item) return item.label;
+    }
+    return null;
+  }
+
+  function syncFromSelect() {
+    const v = selectEl.value;
+    const lbl = labelForValue(v);
+    if (lbl) {
+      triggerLabel.textContent = lbl;
+      trigger.classList.add("has-selection");
+      triggerClear.hidden = false;
+    } else {
+      triggerLabel.textContent = "Search scenarios…";
+      trigger.classList.remove("has-selection");
+      triggerClear.hidden = true;
+    }
+  }
+
+  function render(filter) {
+    const q = (filter || "").trim().toLowerCase();
+    list.innerHTML = "";
+    visibleItems = [];
+    let count = 0;
+    for (const group of SCENARIO_GROUPS) {
+      const matches = q
+        ? group.items.filter(i => i.label.toLowerCase().includes(q))
+        : group.items;
+      if (matches.length === 0) continue;
+      const header = document.createElement("div");
+      header.className = "scenario-palette-group-title";
+      header.textContent = group.title;
+      list.appendChild(header);
+      for (const item of matches) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "scenario-palette-item";
+        btn.dataset.value = item.value;
+        btn.setAttribute("role", "option");
+        btn.innerHTML = `
+          <i class="ph ph-caret-right scenario-palette-item-icon"></i>
+          <span class="scenario-palette-item-label">${item.label}</span>
+          <span class="scenario-palette-item-enter">&crarr;</span>
+        `;
+        btn.addEventListener("mouseenter", () => setActive(visibleItems.indexOf(btn)));
+        btn.addEventListener("click", (e) => { e.stopPropagation(); choose(item.value); });
+        list.appendChild(btn);
+        visibleItems.push(btn);
+        count++;
+      }
+    }
+    empty.hidden = count > 0;
+    activeIndex = visibleItems.length ? 0 : -1;
+    paintActive();
+  }
+
+  function setActive(i) {
+    if (i < 0 || i >= visibleItems.length) return;
+    activeIndex = i;
+    paintActive();
+  }
+
+  function paintActive() {
+    visibleItems.forEach((b, i) => b.classList.toggle("active", i === activeIndex));
+    const el = visibleItems[activeIndex];
+    if (el) el.scrollIntoView({ block: "nearest" });
+  }
+
+  function open() {
+    backdrop.hidden = false;
+    input.value = "";
+    render("");
+    setTimeout(() => input.focus(), 10);
+  }
+  function close() {
+    backdrop.hidden = true;
+  }
+  function choose(v) {
+    selectEl.value = v;
+    selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+    close();
+  }
+
+  trigger.addEventListener("click", (e) => {
+    if (e.target.closest("#scenario-trigger-clear")) return;
+    open();
+  });
+  trigger.addEventListener("keydown", (e) => {
+    if (e.target.closest("#scenario-trigger-clear")) return;
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+  });
+  triggerClear.addEventListener("click", (e) => {
+    e.stopPropagation();
+    selectEl.value = "";
+    selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  backdrop.addEventListener("click", (e) => {
+    if (e.target === backdrop) close();
+  });
+  input.addEventListener("input", () => render(input.value));
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive(Math.min(activeIndex + 1, visibleItems.length - 1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActive(Math.max(activeIndex - 1, 0)); }
+    else if (e.key === "Enter") {
+      e.preventDefault();
+      const el = visibleItems[activeIndex];
+      if (el) choose(el.dataset.value);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      close();
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      backdrop.hidden ? open() : close();
+    }
+  });
+
+  selectEl.addEventListener("change", syncFromSelect);
+  syncFromSelect();
+}
+
+let wipeCallPad = () => {};
+
+function setupCallPad() {
+  const openBtn = document.getElementById("callpad-open-btn");
+  const dot = document.getElementById("callpad-dot");
+  const backdrop = document.getElementById("callpad-backdrop");
+  const closeBtn = document.getElementById("callpad-close");
+  const closeBtnFooter = document.getElementById("callpad-close-btn");
+  const text = document.getElementById("callpad-text");
+  const meta = document.getElementById("callpad-meta");
+  const copyBtn = document.getElementById("callpad-copy-btn");
+  const clearBtn = document.getElementById("callpad-clear-btn");
+  if (!openBtn || !backdrop || !text) return;
+
+  let content = "";
+  let lastEditAt = null;
+
+  function fmtAgo(ts) {
+    if (!ts) return "Empty";
+    const sec = Math.floor((Date.now() - ts) / 1000);
+    if (sec < 5) return "Just now";
+    if (sec < 60) return `${sec}s ago`;
+    const m = Math.floor(sec / 60);
+    if (m < 60) return `${m}m ago`;
+    return `${Math.floor(m / 60)}h ago`;
+  }
+
+  function updateMeta() {
+    const lines = content ? content.split(/\r?\n/).filter(Boolean).length : 0;
+    if (!content) {
+      meta.textContent = "Empty";
+      dot.hidden = true;
+      return;
+    }
+    meta.textContent = `${lines} line${lines === 1 ? "" : "s"} · ${fmtAgo(lastEditAt)}`;
+    dot.hidden = false;
+  }
+
+  function open() {
+    backdrop.hidden = false;
+    text.value = content;
+    setTimeout(() => text.focus(), 20);
+  }
+  function close() {
+    backdrop.hidden = true;
+  }
+
+  text.addEventListener("input", () => {
+    content = text.value;
+    lastEditAt = content ? Date.now() : null;
+    updateMeta();
+  });
+  openBtn.addEventListener("click", open);
+  closeBtn.addEventListener("click", close);
+  closeBtnFooter.addEventListener("click", close);
+  backdrop.addEventListener("click", (e) => { if (e.target === backdrop) close(); });
+
+  copyBtn.addEventListener("click", async () => {
+    if (!content) return;
+    try {
+      await navigator.clipboard.writeText(content);
+      const original = copyBtn.innerHTML;
+      copyBtn.innerHTML = '<i class="ph ph-check"></i> Copied';
+      setTimeout(() => { copyBtn.innerHTML = original; }, 1200);
+    } catch (e) { console.error("Clipboard failed:", e); }
+  });
+
+  clearBtn.addEventListener("click", () => {
+    content = "";
+    lastEditAt = null;
+    text.value = "";
+    text.focus();
+    updateMeta();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "n") {
+      e.preventDefault();
+      backdrop.hidden ? open() : close();
+    } else if (e.key === "Escape" && !backdrop.hidden) {
+      close();
+    }
+  });
+
+  // Periodic meta refresh while sheet is open
+  setInterval(() => { if (!backdrop.hidden && content) updateMeta(); }, 15000);
+
+  // Wipe handle exposed for endCall + sign-out + window unload
+  wipeCallPad = function () {
+    content = "";
+    lastEditAt = null;
+    text.value = "";
+    updateMeta();
+    if (!backdrop.hidden) close();
+  };
+  window.addEventListener("beforeunload", wipeCallPad);
+
+  updateMeta();
+}
+
+function setupCallerPicker(selectEl) {
+  const picker = document.getElementById("caller-picker");
+  const trigger = document.getElementById("caller-trigger");
+  const triggerLabel = document.getElementById("caller-trigger-label");
+  const triggerHint = document.getElementById("caller-trigger-hint");
+  const optionsBox = document.getElementById("caller-options");
+  if (!picker || !trigger || !optionsBox) return;
+
+  const options = Array.from(optionsBox.querySelectorAll(".caller-option"));
+
+  function syncFromSelect() {
+    const value = selectEl.value;
+    options.forEach(opt => opt.classList.toggle("selected", opt.dataset.value === value && value !== ""));
+    const active = options.find(opt => opt.dataset.value === value);
+    if (active && value !== "") {
+      triggerLabel.textContent = active.querySelector(".caller-option-label").textContent;
+      triggerHint.textContent = active.querySelector(".caller-option-hint").textContent;
+      trigger.classList.add("has-selection");
+    } else {
+      triggerLabel.textContent = "-- SELECT CALLER --";
+      triggerHint.textContent = "";
+      trigger.classList.remove("has-selection");
+    }
+  }
+
+  function openPicker() {
+    picker.classList.add("open");
+    trigger.setAttribute("aria-expanded", "true");
+  }
+  function closePicker() {
+    picker.classList.remove("open");
+    trigger.setAttribute("aria-expanded", "false");
+  }
+
+  trigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    picker.classList.contains("open") ? closePicker() : openPicker();
+  });
+
+  options.forEach(opt => {
+    opt.addEventListener("click", (e) => {
+      e.stopPropagation();
+      selectEl.value = opt.dataset.value;
+      selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+      closePicker();
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!picker.contains(e.target)) closePicker();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && picker.classList.contains("open")) closePicker();
+  });
+
+  selectEl.addEventListener("change", syncFromSelect);
+  syncFromSelect();
+}
+
 function updateCallerType() {
   const type = document.getElementById("caller-type").value;
   const hipaaInstructions = document.getElementById("hipaa-instructions");
@@ -1488,6 +1828,7 @@ async function endCall() {
       });
     } catch (err) { console.error(err); }
   }
+  if (typeof wipeCallPad === "function") wipeCallPad();
   resetUI();
 }
 
