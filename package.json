@@ -29,6 +29,14 @@
       {
         "from": ".env",
         "to": ".env"
+      },
+      {
+        "from": "logo.ico",
+        "to": "logo.ico"
+      },
+      {
+        "from": "logo.png",
+        "to": "logo.png"
       }
     ],
     "linux": {

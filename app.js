@@ -1537,8 +1537,32 @@ function updateScenario() {
 
     if (!allComplete) {
       infoBox.style.display = "block";
-      infoBox.className = "dynamic-info alert-warning";
-      infoBox.innerHTML = `<strong>MISSING INFO &mdash; DO NOT ESCALATE.</strong><br>The patient must provide every detail above before AR escalation can be considered. <br><br>&bull; If a check detail (number, amount, or cashed date) is missing, advise the patient to contact their bank to obtain it, then call us back.<br>&bull; If the address used does NOT match the address on the Client Fact Sheet, the patient must cancel that check and resend a new one to the correct address shown on the Client Fact Sheet.`;
+      infoBox.className = "dynamic-info missing-info-card";
+      infoBox.innerHTML = `
+        <div class="missing-info-header">
+          <i class="ph-fill ph-warning-circle"></i>
+          <div>
+            <div class="missing-info-title">Do Not Escalate</div>
+            <div class="missing-info-sub">Required information is missing</div>
+          </div>
+        </div>
+        <p class="missing-info-lead">Confirm every detail above with the patient before considering an AR escalation. Use the steps below depending on what's missing.</p>
+        <div class="missing-info-action">
+          <div class="missing-info-action-icon"><i class="ph ph-bank"></i></div>
+          <div class="missing-info-action-text">
+            <strong>Missing check detail</strong>
+            <span class="missing-info-tag">Number, amount, or cashed date</span>
+            <p>Ask the patient to contact their bank to retrieve the missing detail, then call us back so we can verify the payment.</p>
+          </div>
+        </div>
+        <div class="missing-info-action">
+          <div class="missing-info-action-icon"><i class="ph ph-map-pin-line"></i></div>
+          <div class="missing-info-action-text">
+            <strong>Wrong address used</strong>
+            <span class="missing-info-tag">Doesn't match Client Fact Sheet</span>
+            <p>The patient must cancel that check and reissue a new one mailed to the correct address listed on the Client Fact Sheet.</p>
+          </div>
+        </div>`;
       return;
     }
 
