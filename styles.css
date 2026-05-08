@@ -515,6 +515,10 @@ input:focus, select:focus { outline: none; border-color: var(--tno-orange); }
 .radio-group { display: flex; gap: 10px; margin-top: 5px; }
 .radio-label { font-size: 0.8rem; display: flex; align-items: center; cursor: pointer; }
 .radio-label input { margin-right: 5px; accent-color: var(--tno-orange); }
+.chk-completeness { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.chk-row { font-size: 0.82rem; display: flex; align-items: flex-start; gap: 8px; cursor: pointer; padding: 4px 0; line-height: 1.35; }
+.chk-row input[type="checkbox"] { accent-color: var(--tno-orange); margin: 2px 0 0 0; flex-shrink: 0; }
+.chk-row span { flex: 1; }
 .checklist-item { background: var(--bg-card); margin-bottom: 8px; padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--border-light); display: flex; align-items: center; cursor: pointer; font-weight: 600; font-size: 0.85rem; color: var(--tno-blue); transition: 0.2s; }
 .checklist-item:hover { border-color: var(--tno-orange); }
 .checklist-item.disabled { opacity: 0.5; pointer-events: none; background: var(--bg-inset); }

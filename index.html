@@ -399,7 +399,14 @@
           <div id="check-payment-form" class="scenario-form-box">
              <h4><i class="ph ph-money"></i> Check / Money Order Protocol</h4>
              <p style="font-size: 0.8rem; margin-bottom: 10px;"><strong>ASK PATIENT FOR:</strong> Amount, Check Number, Date Sent, Date Cashed, and Address Used.</p>
-             <label class="input-label" style="color:var(--danger)">Timeframe Validator (Date Mailed)</label>
+             <label class="input-label">Confirm patient provided each detail</label>
+             <div class="chk-completeness">
+               <label class="chk-row"><input type="checkbox" class="chk-detail" data-key="number"> <span>Check / Money Order number</span></label>
+               <label class="chk-row"><input type="checkbox" class="chk-detail" data-key="amount"> <span>Exact amount</span></label>
+               <label class="chk-row"><input type="checkbox" class="chk-detail" data-key="address"> <span>Address used (matches Client Fact Sheet)</span></label>
+               <label class="chk-row"><input type="checkbox" class="chk-detail" data-key="cashed"> <span>Date cashed <em style="color:var(--text-muted); font-style: normal; font-size: 0.75rem;">(or confirm "not cashed yet")</em></span></label>
+             </div>
+             <label class="input-label" style="color:var(--danger); margin-top: 12px;">Date Mailed (Sent)</label>
              <input type="date" id="chk-sent">
           </div>
 
@@ -915,7 +922,8 @@
           <div class="callpad-actions">
             <button type="button" class="callpad-action-btn" id="callpad-copy-btn"><i class="ph ph-copy"></i> Copy all</button>
             <button type="button" class="callpad-action-btn callpad-action-btn--danger" id="callpad-clear-btn"><i class="ph ph-trash"></i> Clear</button>
-            <button type="button" class="callpad-action-btn callpad-action-btn--primary" id="callpad-close-btn">Close</button>
+            <button type="button" class="callpad-action-btn" id="callpad-close-btn">Close</button>
+            <button type="button" class="callpad-action-btn callpad-action-btn--primary" id="callpad-send-btn"><i class="ph ph-paper-plane-tilt"></i> Send to remote</button>
           </div>
         </div>
       </div>
