@@ -24,13 +24,21 @@ function sanitizeHTML(html) {
 
 // Denial codes loaded from external JSON
 let denialCodesDB = {};
+let denialCodesLoaded = false;
+let denialCodesLoadError = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Load denial codes from JSON file
   try {
-    const response = await fetch("./denial_codes.json");
+    const denialDbUrl = new URL("./denial_codes.json", window.location.href).toString();
+    const response = await fetch(denialDbUrl, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
     denialCodesDB = await response.json();
+    denialCodesLoaded = true;
   } catch (err) {
+    denialCodesLoadError = err;
     console.error("Failed to load denial codes:", err);
   }
 
@@ -75,6 +83,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("is-iihs").addEventListener("change", updateScenario);
   document.getElementById("is-iihs-law").addEventListener("change", updateScenario);
   document.getElementById("chk-sent").addEventListener("change", updateScenario);
+  document.querySelectorAll(".chk-detail").forEach(cb => cb.addEventListener("change", updateScenario));
   document.querySelectorAll('input[name="ticket-status"]').forEach(r => r.addEventListener("change", updateScenario));
 
   document.getElementById("pp-balance").addEventListener("input", calculatePaymentPlan);
@@ -991,6 +1000,31 @@ function initNotes() {
     renderNotes();
     notesContainer.classList.add("active");
   };
+
+  // Expose the remote-arm machinery so other features (Call Pad) can reuse the
+  // typer + global shortcut + visible "armed" banner without re-implementing it.
+  window.tnoArmRemoteText = async function(text, title) {
+    if (!text || !text.trim()) {
+      showToast("Nothing to send — pad is empty", "warning");
+      return { success: false };
+    }
+    const result = await window.electronAPI.notesArm(text, currentShortcut);
+    if (!result || !result.success) {
+      showToast(result && result.error ? result.error : "Failed to arm", "error");
+      return result || { success: false };
+    }
+    currentArmedId = "__callpad__";
+    armNoteTitle.textContent = title || "Call Pad";
+    updateBannerShortcut();
+    armBanner.classList.add("active");
+    renderNotes();
+    return { success: true };
+  };
+
+  window.tnoDisarmRemote = async function(silent) {
+    if (currentArmedId !== "__callpad__") return;
+    await disarmNote(silent);
+  };
 }
 
 // Global function called from collections error button
@@ -1183,6 +1217,7 @@ function setupCallPad() {
   const meta = document.getElementById("callpad-meta");
   const copyBtn = document.getElementById("callpad-copy-btn");
   const clearBtn = document.getElementById("callpad-clear-btn");
+  const sendBtn = document.getElementById("callpad-send-btn");
   if (!openBtn || !backdrop || !text) return;
 
   let content = "";
@@ -1245,6 +1280,21 @@ function setupCallPad() {
     text.focus();
     updateMeta();
   });
+
+  if (sendBtn) {
+    sendBtn.addEventListener("click", async () => {
+      if (!content.trim()) return;
+      if (typeof window.tnoArmRemoteText !== "function") {
+        console.warn("tnoArmRemoteText not available");
+        return;
+      }
+      const r = await window.tnoArmRemoteText(content, "Call Pad");
+      if (r && r.success) {
+        // Close the sheet so the agent can see the armed banner and switch focus
+        close();
+      }
+    });
+  }
 
   document.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "n") {
@@ -1481,20 +1531,33 @@ function updateScenario() {
   }
   else if (scenario === "check_payment") {
     document.getElementById("check-payment-form").style.display = "block";
+    const detailChecks = Array.from(document.querySelectorAll(".chk-detail"));
+    const allComplete = detailChecks.length > 0 && detailChecks.every(cb => cb.checked);
     const days = checkPaymentTimeframe();
+
+    if (!allComplete) {
+      infoBox.style.display = "block";
+      infoBox.className = "dynamic-info alert-warning";
+      infoBox.innerHTML = `<strong>MISSING INFO &mdash; DO NOT ESCALATE.</strong><br>The patient must provide every detail above before AR escalation can be considered. <br><br>&bull; If a check detail (number, amount, or cashed date) is missing, advise the patient to contact their bank to obtain it, then call us back.<br>&bull; If the address used does NOT match the address on the Client Fact Sheet, the patient must cancel that check and resend a new one to the correct address shown on the Client Fact Sheet.`;
+      return;
+    }
+
     if (days === "invalid") {
       infoBox.style.display = "block";
       infoBox.className = "dynamic-info alert-danger";
       infoBox.innerHTML = `<strong>INVALID DATE.</strong> Please enter a valid past date.`;
-    } else if (days !== "unknown") {
+    } else if (days === "unknown") {
       infoBox.style.display = "block";
-      if (days > 21) {
-        infoBox.className = "dynamic-info alert-success";
-        infoBox.innerHTML = `<strong>${days} DAYS PASSED.</strong> Escalate to AR.`;
-      } else {
-        infoBox.className = "dynamic-info alert-warning";
-        infoBox.innerHTML = `<strong>${days} DAYS PASSED.</strong> Advise to wait.`;
-      }
+      infoBox.className = "dynamic-info alert-warning";
+      infoBox.innerHTML = `<strong>Enter the Date Mailed</strong> below to evaluate the timeframe.`;
+    } else if (days > 21) {
+      infoBox.style.display = "block";
+      infoBox.className = "dynamic-info alert-success";
+      infoBox.innerHTML = `<strong>${days} DAYS PASSED.</strong> All details confirmed &rarr; escalate to AR.`;
+    } else {
+      infoBox.style.display = "block";
+      infoBox.className = "dynamic-info alert-warning";
+      infoBox.innerHTML = `<strong>${days} DAYS PASSED.</strong> All details confirmed &rarr; advise patient to wait.`;
     }
   }
   else if (scenario === "refund") {
@@ -1612,12 +1675,22 @@ function checkDenialCode() {
   infoBox.style.display = "block";
   infoBox.className = "dynamic-info";
 
+  if (!denialCodesLoaded) {
+    infoBox.classList.add("alert-warning");
+    infoBox.innerHTML = denialCodesLoadError
+      ? "DENIAL DATABASE FAILED TO LOAD. RESTART THE APP OR REINSTALL THE LATEST BUILD."
+      : "LOADING DENIAL DATABASE...";
+    return;
+  }
+
   if (denialCodesDB.hasOwnProperty(code)) {
     const data = denialCodesDB[code];
+    const actionText = String(data.action || "");
+    const actionUpper = actionText.toUpperCase();
 
-    if (data.action.includes("ARF")) {
+    if (actionUpper.includes("ARF")) {
       infoBox.classList.add("alert-danger");
-    } else if (data.action.includes("PT RESP")) {
+    } else if (actionUpper.includes("PT RESP")) {
       infoBox.classList.add("alert-info");
     } else {
       infoBox.classList.add("alert-warning");
@@ -1626,7 +1699,7 @@ function checkDenialCode() {
     infoBox.innerHTML = `
       <div style="font-size:0.9rem; font-weight:800; border-bottom:1px solid var(--border-light); margin-bottom:5px;">DENIAL: ${code}</div>
       <div style="font-size:0.8rem; margin-bottom:5px;"><em>${data.desc}</em></div>
-      <div style="font-weight:700; text-transform:uppercase;">ACTION: ${data.action}</div>
+      <div style="font-weight:700; text-transform:uppercase;">ACTION: ${actionText}</div>
       <button onclick="askCopilotAboutDenial('${code}', '${data.desc.replace(/'/g, "\\'")}')" style="margin-top:8px; width:auto; padding:6px 14px; font-size:0.75rem; background:var(--tno-orange); border-radius:20px; display:inline-flex; align-items:center; gap:6px;">
         <i class="ph ph-robot" style="color:white; font-size:0.9rem; margin:0;"></i> Ask Copilot about this
       </button>
