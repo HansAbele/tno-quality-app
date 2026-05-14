@@ -1054,7 +1054,9 @@ const SCENARIO_GROUPS = [
     { value: "check_payment", label: "Payment by Check / Money Order" },
     { value: "hsa_payment", label: "Payment via HSA / HRA" },
     { value: "refund", label: "Refund Request" },
-    { value: "paper_bill", label: "Request Paper Bill" }
+    { value: "invoice_statement", label: "Invoice Statement" },
+    { value: "itemized_bill", label: "Itemized Bill" },
+    { value: "cc_change", label: "Credit Card Change (Auto Pay Plan)" }
   ]},
   { title: "Claims", items: [
     { value: "claim_status", label: "Claim Status" },
@@ -1074,7 +1076,14 @@ const SCENARIO_GROUPS = [
     { value: "mva", label: "Motor Vehicle Accident" },
     { value: "wc", label: "Workers' Compensation" },
     { value: "veteran", label: "Veteran / VA / Tricare" },
-    { value: "law_firm", label: "Law Firm / Attorney" }
+    { value: "law_firm", label: "Law Firm / Attorney" },
+    { value: "bankruptcy", label: "Bankruptcy" },
+    { value: "hardship", label: "Hardship Letter Request" }
+  ]},
+  { title: "Documents & Forms", items: [
+    { value: "hipaa_form", label: "HIPAA Form Request" },
+    { value: "w9_form", label: "W9 Form Request" },
+    { value: "tax_npi", label: "Tax ID / NPI Request" }
   ]}
 ];
 
@@ -1476,7 +1485,9 @@ function updateScenario() {
     "claim-status-box", "deceased-form", "escalation-form",
     "refund-options", "lawfirm-form", "selfpay-calc-box",
     "payment-calc-box", "escalation-validator-box", "balance-inquiry-box",
-    "collections-form"
+    "collections-form", "invoice-statement-form", "itemized-bill-form",
+    "cc-change-form", "bankruptcy-form", "hardship-form",
+    "hipaa-request-form", "w9-request-form", "tax-npi-form"
   ];
   forms.forEach(id => document.getElementById(id).style.display = "none");
 
@@ -1591,10 +1602,29 @@ function updateScenario() {
     infoBox.className = isIIHS ? "dynamic-info alert-success" : "dynamic-info alert-info";
     infoBox.innerHTML = isIIHS ? '<strong>Processing Time:</strong> Electronic Payments (24-48h).' : '<strong>STANDARD (CHECK/MONEY ORDER):</strong> 6-8 Weeks.';
   }
-  else if (scenario === "paper_bill") {
-    infoBox.style.display = "block";
-    infoBox.classList.add("alert-info");
-    infoBox.innerHTML = `<i class="ph ph-envelope-simple" ${iconStyle}></i> Timeframe: 5-7 Business Days.<br>Advise to reply <strong>STOP</strong> to texts/emails.`;
+  else if (scenario === "invoice_statement") {
+    document.getElementById("invoice-statement-form").style.display = "block";
+  }
+  else if (scenario === "itemized_bill") {
+    document.getElementById("itemized-bill-form").style.display = "block";
+  }
+  else if (scenario === "cc_change") {
+    document.getElementById("cc-change-form").style.display = "block";
+  }
+  else if (scenario === "bankruptcy") {
+    document.getElementById("bankruptcy-form").style.display = "block";
+  }
+  else if (scenario === "hardship") {
+    document.getElementById("hardship-form").style.display = "block";
+  }
+  else if (scenario === "hipaa_form") {
+    document.getElementById("hipaa-request-form").style.display = "block";
+  }
+  else if (scenario === "w9_form") {
+    document.getElementById("w9-request-form").style.display = "block";
+  }
+  else if (scenario === "tax_npi") {
+    document.getElementById("tax-npi-form").style.display = "block";
   }
   else if (scenario === "escalation_sup") {
     document.getElementById("escalation-form").style.display = "block";
