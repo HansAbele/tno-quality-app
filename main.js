@@ -18,6 +18,19 @@ const { spawn } = require("child_process");
 const os = require("os");
 
 let mainWindow = null;
+const APP_ID = "com.tno.qualityapp";
+const APP_ICON = process.platform === "win32" ? "logo.ico" : "logo.png";
+
+// Resolve the window/taskbar icon. When packaged, the icon ships via
+// extraResources next to app.asar — reading it straight from disk
+// (resourcesPath) is more reliable than reading it from inside the asar.
+function resolveIconPath() {
+  if (app.isPackaged && process.resourcesPath) {
+    const packagedIcon = path.join(process.resourcesPath, APP_ICON);
+    if (fs.existsSync(packagedIcon)) return packagedIcon;
+  }
+  return path.join(__dirname, APP_ICON);
+}
 
 function createWindow() {
   // 2. OBTENER DIMENSIONES DE LA PANTALLA
@@ -34,7 +47,7 @@ function createWindow() {
     y: y, // Posición Y: Arriba del todo
 
     // Configuración visual
-    icon: path.join(__dirname, "logo.png"),
+    icon: resolveIconPath(),
     frame: true,
     alwaysOnTop: true,
 
@@ -641,6 +654,10 @@ function startMemoryLog() {
 
 // === CICLO DE VIDA DE LA APP ===
 app.whenReady().then(() => {
+  if (process.platform === "win32") {
+    app.setAppUserModelId(APP_ID);
+  }
+
   createWindow();
   startPsTyper();       // keep PS loaded so first type is fast
   startMemoryLog();
