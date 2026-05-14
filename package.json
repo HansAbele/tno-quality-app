@@ -22,8 +22,23 @@
     "appId": "com.tno.qualityapp",
     "productName": "TNO Quality Companion",
     "files": [
-      "**/*",
-      ".env"
+      "main.js",
+      "preload.js",
+      "index.html",
+      "login.js",
+      "app.js",
+      "styles.css",
+      "denial_codes.json",
+      "notes_data.json",
+      "system_prompt.txt",
+      "logo.png",
+      "logo.ico",
+      "assets/**/*",
+      "package.json"
+    ],
+    "electronLanguages": [
+      "en-US",
+      "es"
     ],
     "extraResources": [
       {
