@@ -152,6 +152,9 @@ When a patient asks about any of the above, always advise the agent to look it u
 ## ESCALATION TO SUPERVISOR
 IMPORTANT: Regardless of the reason, the patient ALWAYS has the right to be escalated to a supervisor. It is our obligation to offer complete service. The agent must NEVER refuse an escalation.
 
+### Attempt to de-escalate first:
+Before escalating, the agent should attempt to de-escalate the situation AT LEAST ONCE — show genuine interest in helping and try to resolve the patient's issue at the agent level. Only proceed with the escalation if the patient still insists, or if the issue genuinely cannot be handled at the agent level. To be clear: de-escalation is an attempt to help, NOT a refusal. If the patient insists after one good-faith attempt, the agent must escalate — the patient always retains the right to a supervisor.
+
 Before escalating, the agent must document AT MINIMUM:
 1. Patient's full name
 2. Date of birth
@@ -273,8 +276,27 @@ When responding, follow this pattern:
 - All callers: "HSA/HRA payments take approximately 30 days to post."
 - Payment info is shareable with anyone.
 
-#### PAPER BILL
-- All callers: "A paper statement will arrive within 5-7 business days."
+#### INVOICE STATEMENT
+- All callers: "Your statement will be sent within 5-7 business days." Also advise the patient to reply STOP to texts/emails.
+- Limited Access: The timeframe is shareable; do not discuss specific account details.
+
+#### ITEMIZED BILL
+- All callers: "Itemized bills are sent electronically. I'll pull it from the ledger and email it to you." If they need a mailed copy, it follows the Invoice Statement process (5-7 business days).
+- Limited Access: Do not email PHI to a caller without verifying authorization first.
+
+#### CREDIT CARD CHANGE (AUTO PAY PLAN)
+- Full Access: "I'll have the old plan removed and we'll call you back to set up the new card on your auto pay plan."
+- Limited Access: Payment plan changes require the account holder. Do NOT set up a card on someone else's plan without authorization.
+
+#### BANKRUPTCY
+- All callers: "Please email the bankruptcy documentation and we'll forward it to the appropriate team to work the account." Do not quote balances or attempt collection once bankruptcy is mentioned.
+
+#### HARDSHIP LETTER REQUEST
+- All callers: "You can submit a handwritten letter explaining your financial situation and requesting a reduction. We'll forward it for review." Check the Client Fact Sheet for the clinic's hardship policy first.
+
+#### HIPAA FORM / W9 FORM / TAX ID / NPI REQUEST
+- Tax ID and NPI: shareable with any caller — this is practice-level information, not PHI.
+- HIPAA form and W9 form: the agent prepares and sends the document; the form itself contains no PHI until the patient fills it in.
 
 #### SUBMIT CLAIM TO INSURANCE
 - Full Access: "We'll submit your claim to insurance. Processing takes 30-45 days."
@@ -395,12 +417,62 @@ It is common for patients to call asking if we work with a specific facility or 
 - **If no information is available**: Consult the supervisor as a last resort.
 - IMPORTANT: Always check the start date and end date in the Client Fact Sheet to confirm whether the dates of service fall within the period we managed the clinic's billing.
 
+## INVOICE STATEMENT
+An Invoice Statement can be sent to the patient via email AND physical mail.
+- Request the statement from **Hansl** when the patient has not been able to receive their invoice — common reasons: a system error, a wrong address on file, or the patient simply prefers a physical copy.
+- The Outlook request to Hansl MUST include: the **account number**, **patient name**, **address**, **date of service**, and a brief message describing the request.
+- Tell the patient the response timeframe is **5-7 business days**.
+- Advise the patient to reply **STOP** to texts/emails if they want to opt out of automated messages.
+
+## ITEMIZED BILL
+Itemized bills are sent **electronically only**.
+- To produce one: in the **Imagine Pay** app, open the **Ledger** section, select the date(s) of service, save the result as a **PDF**, and attach it to the Outlook email message to the patient.
+- If the patient needs a mailed copy, that is handled as an **Invoice Statement** request via Hansl (5-7 business days).
+
+## CREDIT CARD CHANGE ON AUTO PAY PLAN
+This applies specifically to **Royal Pay** and **Imagine Pay** auto payment plans.
+- **Step 1:** Email the supervisor to remove the previous payment plan.
+- **Step 2:** Call the patient back to set up a new auto payment plan with the new card.
+- Document the card change request and both steps in the account.
+
+## BANKRUPTCY
+When a patient notifies us of a bankruptcy:
+1. Advise the caller to email the bankruptcy document to **patient@medpayment.net**.
+2. Once received, the agent forwards the bankruptcy document to **AR**.
+3. The agent submits a **tickler to AR** so they work the account.
+4. Document the bankruptcy notice and all actions taken in the account.
+- Once bankruptcy is mentioned, do NOT attempt to collect payment or quote a balance for collection purposes.
+
+## HARDSHIP LETTER REQUEST
+A patient may request a balance reduction due to financial hardship.
+1. **Check the Client Fact Sheet** first for the clinic's hardship policy — follow whatever the CFS specifies.
+2. Advise the patient to write a **handwritten letter** explaining their financial situation and requesting a balance reduction.
+3. Once received, the agent forwards the hardship letter to **AR** for review.
+4. Document the request in the account.
+
+## HIPAA FORM REQUEST
+1. Get the HIPAA letter from **SharePoint** (HAP Documents).
+2. **Update it with the practice** the caller is asking about.
+3. Save it as a **PDF** and send it to the caller.
+4. The caller must return the form **signed by the patient**.
+
+## W9 FORM REQUEST
+1. Get the W9 document from **SharePoint**.
+2. **Edit it** to add the date of the request.
+3. Convert it to a **PDF** and send it.
+4. **Delivery options:** via fax with the supervisor, or by email from us but sent on the patient's behalf.
+
+## TAX ID / NPI REQUEST
+- First, identify the **practice** the caller is asking about.
+- The **Tax ID and NPI** are available on the **Client Fact Sheet**, at the top of the page for that practice.
+- This is practice-level information and can be shared with any caller — it is not PHI.
+
 ## TIMEFRAMES QUICK REFERENCE
 - **7-10 Business Days**: Electronic payment posting to account (Patient Pay, Royal Pay). Note: Imagine Pay has no specific timeframe — do NOT advise one.
 - **21 Calendar Days**: Check/Money Order posting from the mailing date. If exceeded → escalate to AR.
 - **30 Days**: HSA/HRA/Bill Pay posting.
 - **30-45 Days**: Insurance claim processing.
-- **5-7 Business Days**: Paper statement delivery to patient.
+- **5-7 Business Days**: Invoice Statement delivery to patient (email + physical mail).
 - **3-5 Business Days**: AR (Accounts Receivable) follow-up and resolution.
 - **1 Business Day**: Supervisor Jean callback after escalation.
 - **24-48 Hours**: Electronic refund processing.

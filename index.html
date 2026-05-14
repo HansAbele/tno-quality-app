@@ -314,7 +314,9 @@
               <option value="check_payment">Payment by Check/Money Order - Not Received</option>
               <option value="hsa_payment">Payment via HSA/HRA</option>
               <option value="refund">Refund Request</option>
-              <option value="paper_bill">Request Paper Bill</option>
+              <option value="invoice_statement">Invoice Statement</option>
+              <option value="itemized_bill">Itemized Bill</option>
+              <option value="cc_change">Credit Card Change (Auto Pay Plan)</option>
               <option value="escalation_sup">Escalation to Supervisor</option>
               <option value="escalation_ar">Escalation to AR (Validator)</option>
               <option value="followup">Follow-up (Previous Escalation)</option>
@@ -325,6 +327,11 @@
               <option value="mva">Motor Vehicle Accident</option>
               <option value="wc">Workers' Compensation</option>
               <option value="law_firm">Law Firm / Attorney</option>
+              <option value="bankruptcy">Bankruptcy</option>
+              <option value="hardship">Hardship Letter Request</option>
+              <option value="hipaa_form">HIPAA Form Request</option>
+              <option value="w9_form">W9 Form Request</option>
+              <option value="tax_npi">Tax ID / NPI Request</option>
             </select>
           </div>
 
@@ -355,6 +362,10 @@
 
           <div id="escalation-form" class="scenario-form-box">
              <h4><i class="ph ph-user-circle-plus"></i> Supervisor Escalation Guide</h4>
+             <div class="alert-warning" style="padding: 10px; border-radius: 6px; border: 1px solid var(--tno-orange); margin-bottom: 10px; font-size: 0.82rem; line-height: 1.4;">
+                <i class="ph ph-hand-heart" style="font-size: 1.1rem; vertical-align: middle; margin-right: 5px;"></i>
+                <strong>TRY TO DE-ESCALATE FIRST:</strong> Attempt to resolve the issue at least once, showing genuine interest in helping. Only proceed with escalation if the patient insists or the issue truly can't be handled at agent level. The patient <strong>always retains the right</strong> to escalate &mdash; never refuse.
+             </div>
              <ul class="instruction-list">
                  <li>Take Caller Details (Name, Callback #, Acct #).</li>
                  <li>Note the reason for escalation in the account.</li>
@@ -512,6 +523,85 @@
                 3. Check Date Range Approved.<br>
                 4. If Denied/Missing: Advise to resend via ChartSwap.
              </div>
+          </div>
+
+          <div id="invoice-statement-form" class="scenario-form-box">
+             <h4><i class="ph ph-envelope-simple"></i> Invoice Statement Request</h4>
+             <ul class="instruction-list">
+                 <li>Sent via <strong>email</strong> and <strong>physical mail</strong>.</li>
+                 <li><strong>Request from Hansl</strong> when the patient hasn't been able to receive the invoice &mdash; system error, wrong address on file, or the patient simply prefers a physical copy.</li>
+                 <li>In the Outlook request to Hansl, include: <strong>account number, patient name, address, date of service,</strong> and a brief message describing the request.</li>
+                 <li>Advise the patient the response timeframe is <strong>5-7 business days</strong>.</li>
+                 <li>Advise the patient to reply <strong>STOP</strong> to texts/emails.</li>
+             </ul>
+          </div>
+
+          <div id="itemized-bill-form" class="scenario-form-box">
+             <h4><i class="ph ph-list-bullets"></i> Itemized Bill Request</h4>
+             <ul class="instruction-list">
+                 <li><strong>Itemized bills are sent electronically only.</strong></li>
+                 <li>In <strong>Imagine Pay</strong>: open the <strong>Ledger</strong> section, select the date(s) of service, save as <strong>PDF</strong>, and attach it to the Outlook email message.</li>
+                 <li>If the patient needs a mailed copy: process it as an <strong>Invoice Statement</strong> request via Hansl.</li>
+             </ul>
+          </div>
+
+          <div id="cc-change-form" class="scenario-form-box">
+             <h4><i class="ph ph-credit-card"></i> Credit Card Change &mdash; Auto Pay Plan</h4>
+             <p style="font-size:0.8rem; margin-bottom:10px;"><strong>Applies to Royal Pay &amp; Imagine Pay auto payment plans only.</strong></p>
+             <ul class="instruction-list">
+                 <li><strong>Step 1:</strong> Email the supervisor to remove the previous payment plan.</li>
+                 <li><strong>Step 2:</strong> Call the patient back to set up a new auto payment plan with the new card.</li>
+                 <li><strong>Document</strong> the card change request and both steps in the account.</li>
+             </ul>
+          </div>
+
+          <div id="bankruptcy-form" class="scenario-form-box">
+             <h4><i class="ph ph-gavel"></i> Bankruptcy Protocol</h4>
+             <ul class="instruction-list">
+                 <li>Advise the caller to email the bankruptcy document to: <br><strong style="color:var(--tno-blue)">patient@medpayment.net</strong>.</li>
+                 <li>Once received, <strong>forward the bankruptcy document to AR</strong>.</li>
+                 <li>Submit a <strong>tickler to AR</strong> so they work the account.</li>
+                 <li><strong>Document</strong> the bankruptcy notice and all actions taken in the account.</li>
+             </ul>
+          </div>
+
+          <div id="hardship-form" class="scenario-form-box">
+             <h4><i class="ph ph-hand-heart"></i> Hardship Letter Request</h4>
+             <ul class="instruction-list">
+                 <li><strong>Check the Client Fact Sheet</strong> for the clinic's hardship policy before proceeding.</li>
+                 <li>Advise the patient to write a <strong>handwritten letter</strong> explaining their financial situation and requesting a balance reduction.</li>
+                 <li>Once received, <strong>forward the hardship letter to AR</strong> for review.</li>
+                 <li><strong>Document</strong> the request in the account.</li>
+             </ul>
+          </div>
+
+          <div id="hipaa-request-form" class="scenario-form-box">
+             <h4><i class="ph ph-file-lock"></i> HIPAA Form Request</h4>
+             <ul class="instruction-list">
+                 <li>Get the HIPAA letter from <strong>SharePoint</strong> (HAP Documents).</li>
+                 <li><strong>Update it with the practice</strong> the caller is asking about.</li>
+                 <li>Save as <strong>PDF</strong> and send it to the caller.</li>
+                 <li>The caller must return it <strong>signed by the patient</strong>.</li>
+             </ul>
+          </div>
+
+          <div id="w9-request-form" class="scenario-form-box">
+             <h4><i class="ph ph-file-text"></i> W9 Form Request</h4>
+             <ul class="instruction-list">
+                 <li>Get the W9 document from <strong>SharePoint</strong>.</li>
+                 <li><strong>Edit it</strong> &mdash; add the date of the request.</li>
+                 <li>Convert to <strong>PDF</strong> and send.</li>
+                 <li><strong>Delivery:</strong> via fax with the supervisor, or email from us sent on the patient's behalf.</li>
+             </ul>
+          </div>
+
+          <div id="tax-npi-form" class="scenario-form-box">
+             <h4><i class="ph ph-identification-badge"></i> Tax ID / NPI Request</h4>
+             <ul class="instruction-list">
+                 <li>Identify the <strong>practice</strong> the caller is asking about.</li>
+                 <li>The <strong>Tax ID and NPI</strong> are on the <strong>Client Fact Sheet</strong> &mdash; at the top of the page for that practice.</li>
+                 <li>Provide the information to the caller.</li>
+             </ul>
           </div>
 
           <div id="dynamic-info-box" class="dynamic-info"></div>
