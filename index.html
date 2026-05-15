@@ -260,7 +260,7 @@
               <label class="input-label">HIPAA Authorization Status</label>
               <div class="radio-group">
                 <label class="radio-label">
-                  <input type="radio" name="hipaa" value="auth" checked /> ✅ Authorized
+                  <input type="radio" name="hipaa" value="auth" checked /> <i class="ph-fill ph-check-circle" style="color: var(--success); font-size: 1.1rem; vertical-align: middle;"></i> Authorized
                 </label>
                 <label class="radio-label">
                   <input type="radio" name="hipaa" value="noauth" /> <i class="ph ph-prohibit" style="color: var(--danger); font-size: 1.2rem"></i> No Authorized
@@ -427,10 +427,10 @@
                <label class="input-label">Current Status</label>
                <div class="radio-group">
                  <label class="radio-label">
-                   <input type="radio" name="claim-status-radio" value="process" /> ⏳ In Process
+                   <input type="radio" name="claim-status-radio" value="process" /> <i class="ph ph-hourglass-medium" style="color: var(--text-muted); font-size: 1.1rem; vertical-align: middle;"></i> In Process
                  </label>
                  <label class="radio-label">
-                   <input type="radio" name="claim-status-radio" value="denied" /> 🚫 Denied
+                   <input type="radio" name="claim-status-radio" value="denied" /> <i class="ph ph-prohibit" style="color: var(--danger); font-size: 1.1rem; vertical-align: middle;"></i> Denied
                  </label>
                </div>
             </div>
@@ -451,7 +451,7 @@
                   <div class="js-accordion__panel">
                     <h3 class="accordion__heading">
                       <button class="accordion__trigger" aria-expanded="false" style="background: transparent; border-bottom: 1px dashed var(--scenario-border);">
-                        👨‍⚕️ Professional Component (PC)
+                        <i class="ph ph-stethoscope" style="color: var(--tno-orange);"></i> Professional Component (PC)
                         <span class="icon-indicator">+</span>
                       </button>
                     </h3>
@@ -463,7 +463,7 @@
                   <div class="js-accordion__panel">
                     <h3 class="accordion__heading">
                       <button class="accordion__trigger" aria-expanded="false" style="background: transparent; border-bottom: none;">
-                        🏥 Technical Component (TC)
+                        <i class="ph ph-hospital" style="color: var(--tno-orange);"></i> Technical Component (TC)
                         <span class="icon-indicator">+</span>
                       </button>
                     </h3>
@@ -511,13 +511,13 @@
                 <strong>PI Liens Case? (Personal Injury)</strong>
              </label>
              <div id="iihs-law-instruction" style="display:none; margin-top:10px; font-size:0.8rem; color:var(--warning-text);">
-                <strong>⚠️ PI LIENS CASE DETECTED:</strong><br>
+                <strong><i class="ph-fill ph-warning" style="color: var(--tno-orange); vertical-align: middle;"></i> PI LIENS CASE DETECTED:</strong><br>
                 Agreement exists with attorneys. <strong>Do NOT refer to ChartSwap.</strong><br>
                 Verify Attorney Name in Insurance Section/Notes.<br>
                 If request not received, provide email: <br><strong>piliens@hapusa.com</strong>
              </div>
              <div id="regular-law-instruction" style="display:block; margin-top:10px; font-size:0.8rem; color:var(--tno-blue);">
-                <strong>⚖️ REGULAR ATTORNEY REQUEST:</strong><br>
+                <strong><i class="ph ph-scales" style="color: var(--tno-blue); vertical-align: middle;"></i> REGULAR ATTORNEY REQUEST:</strong><br>
                 1. Ask for <strong>ChartSwap Request #</strong>.<br>
                 2. Verify Status is <strong>COMPLETED</strong>.<br>
                 3. Check Date Range Approved.<br>
@@ -693,7 +693,7 @@
       </div>
 
       <div class="footer">
-        <div id="congrats-msg" class="success-msg">✓ CALL COMPLETED (100%)</div>
+        <div id="congrats-msg" class="success-msg"><i class="ph-fill ph-check-circle"></i> CALL COMPLETED (100%)</div>
         <div class="footer-buttons">
             <button id="end-call-btn" disabled>END CALL</button>
         </div>

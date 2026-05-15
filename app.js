@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (index > 0 && !allSteps[index - 1].checked) {
         e.target.checked = false;
-        alert("\u26a0\ufe0f Sequence Error: Please complete the previous step first.");
+        alert("Sequence Error: Please complete the previous step first.");
         return;
       }
       if (e.target.checked && index < allSteps.length - 1) {
@@ -1422,24 +1422,24 @@ function updateCallerType() {
   }
 
   if (type === "patient") {
-    instructionHTML = "\u2705 <strong>PATIENT:</strong> Full Access Allowed.";
+    instructionHTML = "<i class=\"ph-fill ph-check-circle\" style=\"color: var(--success); vertical-align: middle; margin-right: 4px;\"></i><strong>PATIENT:</strong> Full Access Allowed.";
     hipaaInstructions.classList.add("hipaa-allowed");
   }
   else if (["insurance", "facility"].includes(type)) {
-    instructionHTML = "\u2705 <strong>COVERED ENTITY:</strong> Can provide Billing Information. No Personal Info (Notes/etc).";
+    instructionHTML = "<i class=\"ph-fill ph-check-circle\" style=\"color: var(--success); vertical-align: middle; margin-right: 4px;\"></i><strong>COVERED ENTITY:</strong> Can provide Billing Information. No Personal Info (Notes/etc).";
     hipaaInstructions.classList.add("hipaa-allowed");
   }
   else if (type === "parent") {
     parentMinorCheck.style.display = "block";
     const isMinor = document.querySelector('input[name="pt-minor"]:checked')?.value;
     if (isMinor === "yes") {
-      instructionHTML = "\u2705 <strong>PARENT (MINOR):</strong> Full Access Allowed.";
+      instructionHTML = "<i class=\"ph-fill ph-check-circle\" style=\"color: var(--success); vertical-align: middle; margin-right: 4px;\"></i><strong>PARENT (MINOR):</strong> Full Access Allowed.";
       hipaaInstructions.classList.add("hipaa-allowed");
     } else if (isMinor === "no") {
-      instructionHTML = "\ud83d\udeab <strong>PARENT (ADULT PT):</strong> We can update Insurance set, received Payments, take Payment details, or provide Balance on the Account. Do not share personal or claim info with caller.";
+      instructionHTML = "<i class=\"ph ph-prohibit\" style=\"color: var(--danger); vertical-align: middle; margin-right: 4px;\"></i><strong>PARENT (ADULT PT):</strong> We can update Insurance set, received Payments, take Payment details, or provide Balance on the Account. Do not share personal or claim info with caller.";
       hipaaInstructions.classList.add("hipaa-blocked");
     } else {
-      instructionHTML = "\u2753 Please select if Patient is Minor or Adult.";
+      instructionHTML = "<i class=\"ph ph-question\" style=\"color: var(--text-muted); vertical-align: middle; margin-right: 4px;\"></i>Please select if Patient is Minor or Adult.";
       hipaaInstructions.style.border = "1px dashed var(--border-light)";
     }
   }
@@ -1447,16 +1447,16 @@ function updateCallerType() {
     lawyerAuthContainer.style.display = "block";
     const chartStatus = document.getElementById("lawyer-chartswap-status").value;
     if (chartStatus === "completed") {
-      instructionHTML = "\u2705 <strong>Authorization Verified.</strong> You may release information ONLY for the specific Date of Service (DOS) range approved in the request. <br><strong>Warning:</strong> Verify the start and end dates on the ChartSwap approval before discussing medical records or billing details.";
+      instructionHTML = "<i class=\"ph-fill ph-check-circle\" style=\"color: var(--success); vertical-align: middle; margin-right: 4px;\"></i><strong>Authorization Verified.</strong> You may release information ONLY for the specific Date of Service (DOS) range approved in the request. <br><strong>Warning:</strong> Verify the start and end dates on the ChartSwap approval before discussing medical records or billing details.";
       hipaaInstructions.classList.add("hipaa-allowed");
     } else if (chartStatus === "rejected") {
-      instructionHTML = "\u26d4 <strong>Request Rejected.</strong> Do NOT provide any account details. Advise the caller to resubmit the request via ChartSwap. <br><strong>Allowed actions:</strong> Update insurance info, confirm received payments, or take payment details only.";
+      instructionHTML = "<i class=\"ph-fill ph-x-circle\" style=\"color: var(--danger); vertical-align: middle; margin-right: 4px;\"></i><strong>Request Rejected.</strong> Do NOT provide any account details. Advise the caller to resubmit the request via ChartSwap. <br><strong>Allowed actions:</strong> Update insurance info, confirm received payments, or take payment details only.";
       hipaaInstructions.classList.add("hipaa-blocked");
     } else if (chartStatus === "new") {
-      instructionHTML = "\u23f3 <strong>Request Pending.</strong> The request is currently marked as 'New'. Please advise the caller that we cannot release records until the status updates to 'Completed'. <br>No information can be shared at this time.";
+      instructionHTML = "<i class=\"ph ph-hourglass-medium\" style=\"color: var(--warning-text); vertical-align: middle; margin-right: 4px;\"></i><strong>Request Pending.</strong> The request is currently marked as 'New'. Please advise the caller that we cannot release records until the status updates to 'Completed'. <br>No information can be shared at this time.";
       hipaaInstructions.classList.add("alert-warning");
     } else {
-      instructionHTML = "\u2753 Please verify status in ChartSwap.";
+      instructionHTML = "<i class=\"ph ph-question\" style=\"color: var(--text-muted); vertical-align: middle; margin-right: 4px;\"></i>Please verify status in ChartSwap.";
       hipaaInstructions.style.border = "1px dashed var(--border-light)";
     }
   }
@@ -1464,10 +1464,10 @@ function updateCallerType() {
     hipaaRadioContainer.style.display = "block";
     if (hipaaStatus === "auth") {
       hipaaInstructions.classList.add("hipaa-allowed");
-      instructionHTML = "\u2705 <strong>AUTHORIZED:</strong> Access allowed per HIPAA form.";
+      instructionHTML = "<i class=\"ph-fill ph-check-circle\" style=\"color: var(--success); vertical-align: middle; margin-right: 4px;\"></i><strong>AUTHORIZED:</strong> Access allowed per HIPAA form.";
     } else {
       hipaaInstructions.classList.add("hipaa-blocked");
-      instructionHTML = "\ud83d\udeab <strong>NO AUTH:</strong> We can update Insurance set, received Payments, take Payment details, or provide Balance on the Account. Do not share personal or claim info with caller.";
+      instructionHTML = "<i class=\"ph ph-prohibit\" style=\"color: var(--danger); vertical-align: middle; margin-right: 4px;\"></i><strong>NO AUTH:</strong> We can update Insurance set, received Payments, take Payment details, or provide Balance on the Account. Do not share personal or claim info with caller.";
     }
   }
 
@@ -1678,15 +1678,15 @@ function updateScenario() {
     if (status === "resolved") {
       infoBox.style.display = "block";
       infoBox.classList.add("alert-success");
-      infoBox.innerHTML = '\u2705 <strong>RESOLVED:</strong> Read AR Resolution Note to Patient.';
+      infoBox.innerHTML = '<i class=\"ph-fill ph-check-circle\" style=\"color: var(--success); vertical-align: middle; margin-right: 4px;\"></i><strong>RESOLVED:</strong> Read AR Resolution Note to Patient.';
     } else if (status === "process") {
       infoBox.style.display = "block";
       infoBox.classList.add("alert-warning");
-      infoBox.innerHTML = '\u23f3 <strong>IN PROCESS:</strong> Advise AR is still working. Ask to wait.';
+      infoBox.innerHTML = '<i class=\"ph ph-hourglass-medium\" style=\"color: var(--warning-text); vertical-align: middle; margin-right: 4px;\"></i><strong>IN PROCESS:</strong> Advise AR is still working. Ask to wait.';
     } else if (status === "stalled") {
       infoBox.style.display = "block";
       infoBox.classList.add("alert-danger");
-      infoBox.innerHTML = '\u26a0\ufe0f <strong>STALLED:</strong> Multiple escalations? Email Supervisor for assistance.';
+      infoBox.innerHTML = '<i class=\"ph-fill ph-warning\" style=\"color: var(--tno-orange); vertical-align: middle; margin-right: 4px;\"></i><strong>STALLED:</strong> Multiple escalations? Email Supervisor for assistance.';
     }
   }
 
@@ -1856,11 +1856,11 @@ function validateEscalation() {
   box.className = "escalation-alert";
 
   if(reason === "missing_info" || reason === "valid_other") {
-    box.classList.add("alert-success"); box.innerHTML = "\u2705 VALID ESCALATION.";
+    box.classList.add("alert-success"); box.innerHTML = "<i class=\"ph-fill ph-check-circle\" style=\"color: var(--success); vertical-align: middle; margin-right: 4px;\"></i>VALID ESCALATION.";
   } else if(reason === "hsa_hra" || reason === "pull_coll") {
-    box.classList.add("alert-warning"); box.innerHTML = "\u26a0\ufe0f CONDITIONAL CHECK.";
+    box.classList.add("alert-warning"); box.innerHTML = "<i class=\"ph-fill ph-warning\" style=\"color: var(--tno-orange); vertical-align: middle; margin-right: 4px;\"></i>CONDITIONAL CHECK.";
   } else {
-    box.classList.add("alert-danger"); box.innerHTML = "\ud83d\udeab INVALID / DO NOT ESCALATE.";
+    box.classList.add("alert-danger"); box.innerHTML = "<i class=\"ph ph-prohibit\" style=\"color: var(--danger); vertical-align: middle; margin-right: 4px;\"></i>INVALID / DO NOT ESCALATE.";
   }
 
 }
