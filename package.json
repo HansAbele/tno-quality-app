@@ -64,7 +64,6 @@
     "win": {
       "target": ["nsis"],
       "icon": "logo.ico",
-      "signtoolOptions": null,
       "forceCodeSigning": false
     },
     "nsis": {
