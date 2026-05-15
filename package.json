@@ -16,6 +16,7 @@
     "electron-builder": "^24.13.3",
     "mammoth": "^1.11.0",
     "pdf-parse-new": "^2.0.0",
+    "rcedit": "^5.0.2",
     "xlsx": "^0.18.5"
   },
   "build": {
@@ -64,8 +65,10 @@
     "win": {
       "target": ["nsis"],
       "icon": "logo.ico",
+      "signAndEditExecutable": false,
       "forceCodeSigning": false
     },
+    "afterPack": "./scripts/after-pack.js",
     "nsis": {
       "oneClick": false,
       "perMachine": false,
