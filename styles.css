@@ -206,7 +206,7 @@ body { font-family: var(--app-font-family, "Montserrat", sans-serif); background
 .input-label { font-size: 0.7rem; color: var(--tno-blue); font-weight: 700; margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
 input[type="text"], input[type="number"], input[type="date"], select { width: 100%; padding: 10px; border-radius: var(--radius); border: 2px solid var(--border-light); color: var(--tno-blue); font-family: var(--app-font-family, "Montserrat", sans-serif); font-size: 0.9rem; font-weight: 500; box-sizing: border-box; transition: 0.2s; margin-bottom: 5px; background-color: var(--bg-card); }
 input:focus, select:focus { outline: none; border-color: var(--tno-orange); }
-.caller-section { background-color: var(--bg-elevated); padding: 10px; border-radius: var(--radius); border: 1px solid var(--border-light); margin: 15px 0; border-left: 4px solid var(--tno-blue); }
+.caller-section { background-color: var(--bg-elevated); padding: 10px; border-radius: var(--radius); border: 1px solid var(--border-light); margin: 15px 0; }
 
 /* Caller picker (custom select replacement for Who is calling) */
 .caller-picker { position: relative; margin-top: 4px; }
