@@ -13,7 +13,7 @@ for (const envPath of envPaths) {
   }
 }
 
-const { app, BrowserWindow, ipcMain, screen, safeStorage, globalShortcut } = require("electron");
+const { app, BrowserWindow, ipcMain, screen, safeStorage, globalShortcut, nativeImage } = require("electron");
 const { spawn } = require("child_process");
 const os = require("os");
 
@@ -40,6 +40,10 @@ function createWindow() {
   // Definimos el ancho fijo que queremos para la app
   const appWidth = 480;
 
+  // Build a nativeImage for the icon so Electron uses the multi-resolution .ico
+  // rather than guessing from a path string. Empty image -> fall back to .exe icon.
+  const iconImage = nativeImage.createFromPath(resolveIconPath());
+
   const win = new BrowserWindow({
     width: appWidth,
     height: height, // Ocupa toda la altura disponible
@@ -47,7 +51,7 @@ function createWindow() {
     y: y, // Posición Y: Arriba del todo
 
     // Configuración visual
-    icon: resolveIconPath(),
+    icon: iconImage.isEmpty() ? resolveIconPath() : iconImage,
     frame: true,
     alwaysOnTop: true,
 
@@ -57,6 +61,12 @@ function createWindow() {
       contextIsolation: true,
     },
   });
+
+  // Force-set the icon again after creation. On Windows the taskbar icon
+  // sometimes only updates via setIcon() after the window is ready.
+  if (!iconImage.isEmpty()) {
+    win.setIcon(iconImage);
+  }
 
   // Borrar el menú de opciones superior
   win.setMenu(null);
