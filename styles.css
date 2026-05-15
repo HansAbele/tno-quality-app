@@ -1866,8 +1866,18 @@ i.ph { font-size: 1.3rem; margin-right: 8px; vertical-align: middle; color: var(
   text-transform: none;
   letter-spacing: 0;
 }
-.callpad-action-btn:hover { border-color: var(--tno-orange); color: var(--tno-orange); }
-.callpad-action-btn--danger:hover { border-color: var(--danger); color: var(--danger); }
+.callpad-action-btn:hover {
+  background: var(--tno-orange);
+  border-color: var(--tno-orange);
+  color: #fff;
+}
+.callpad-action-btn:hover i { color: #fff; }
+.callpad-action-btn--danger:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+.callpad-action-btn--danger:hover i { color: #fff; }
 .callpad-action-btn--primary {
   background: var(--tno-orange);
   border-color: var(--tno-orange);
