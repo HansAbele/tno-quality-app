@@ -7,10 +7,16 @@
 // only need it for the icon — no signing tools, no symlinks.
 
 const path = require("path");
-const rcedit = require("rcedit");
+
+// rcedit v5 ships as an ES module, so we load it via dynamic import().
+// We can't use a top-level static require — that returns the module record
+// object, not the default export, and calling it throws "rcedit is not a
+// function". Dynamic import inside the hook gives us the real function.
 
 module.exports = async function (context) {
   if (context.electronPlatformName !== "win32") return;
+
+  const { default: rcedit } = await import("rcedit");
 
   const productName = context.packager.appInfo.productFilename;
   const exePath = path.join(context.appOutDir, `${productName}.exe`);
