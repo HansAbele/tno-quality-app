@@ -16,7 +16,7 @@ const path = require("path");
 module.exports = async function (context) {
   if (context.electronPlatformName !== "win32") return;
 
-  const { default: rcedit } = await import("rcedit");
+  const { rcedit } = await import("rcedit");
 
   const productName = context.packager.appInfo.productFilename;
   const exePath = path.join(context.appOutDir, `${productName}.exe`);
